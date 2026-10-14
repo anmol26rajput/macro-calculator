@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Free Macro Calculator · @liftsw.anmol</title>
-<meta name="description" content="Free calorie and macro calculator for desk-job lifters. Fat loss without crash diets. No sign-up.">
-<meta property="og:title" content="Free Macro Calculator for Desk-Job Lifters">
-<meta property="og:description" content="Calories and macros for fat loss, maintenance or lean gain. 30 seconds, no sign-up.">
+<title>Free TDEE &amp; Macro Calculator · @liftsw.anmol</title>
+<meta name="description" content="Free TDEE, BMR, calorie and macro calculator for desk-job lifters. Fat loss without crash diets. No sign-up.">
+<meta property="og:title" content="Free TDEE &amp; Macro Calculator for Desk-Job Lifters">
+<meta property="og:description" content="BMR, TDEE, calories, protein, carbs, fat, BMI and more. 30 seconds, no sign-up.">
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#f6f5f1" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#121413" media="(prefers-color-scheme: dark)">
@@ -69,12 +69,28 @@ input:user-invalid { border-color: var(--bad); }
 .sub { margin: 4px 0 14px; color: var(--muted); font-size: .9rem; }
 .bar { display: flex; height: 8px; border-radius: 4px; overflow: hidden; gap: 2px; margin-bottom: 14px; }
 .bar i:nth-child(1) { background: var(--p); } .bar i:nth-child(2) { background: var(--c); } .bar i:nth-child(3) { background: var(--f); }
-dl { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 0 0 14px; }
-dl div { border-top: 3px solid; padding-top: 6px; }
-dl div:nth-child(1) { border-color: var(--p); } dl div:nth-child(2) { border-color: var(--c); } dl div:nth-child(3) { border-color: var(--f); }
+dl { margin: 0; }
 dt { font-size: .85rem; color: var(--muted); }
-dd { margin: 0; font-size: 1.4rem; font-weight: 700; font-variant-numeric: tabular-nums; }
-dd small { font-size: .9rem; font-weight: 500; color: var(--muted); }
+dd { margin: 0; font-variant-numeric: tabular-nums; }
+.macros { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 0 0 14px; }
+.macros div { border-top: 3px solid; padding-top: 6px; }
+.macros div:nth-child(1) { border-color: var(--p); } .macros div:nth-child(2) { border-color: var(--c); } .macros div:nth-child(3) { border-color: var(--f); }
+.macros dd { font-size: 1.4rem; font-weight: 700; line-height: 1.3; }
+.macros dd small { font-size: .9rem; font-weight: 500; color: var(--muted); }
+.macros .split { display: block; font-size: .8rem; font-weight: 400; }
+.more { margin-top: 14px; }
+.rows div { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.rows dt { color: var(--text); font-size: .95rem; }
+.rows dt small { display: block; color: var(--muted); font-size: .8rem; }
+.rows dd { font-weight: 600; text-align: right; white-space: nowrap; }
+.rows dd small { display: block; color: var(--muted); font-size: .8rem; font-weight: 400; }
+h3 { font-size: .95rem; margin: 18px 0 6px; }
+table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: .92rem; }
+th, td { padding: 8px 4px; text-align: right; border-bottom: 1px solid var(--line); }
+th:first-child, td:first-child { text-align: left; }
+th { font-size: .8rem; font-weight: 500; color: var(--muted); }
+tr.on td { font-weight: 700; }
+tr.on td:first-child { color: var(--accent); }
 .note { margin: 0; font-size: .92rem; padding-top: 12px; border-top: 1px solid var(--line); }
 details { margin-top: 18px; color: var(--muted); font-size: .9rem; }
 summary { cursor: pointer; color: var(--text); font-weight: 600; }
@@ -86,7 +102,7 @@ a { color: var(--accent); }
 <body>
 <main>
   <p class="kicker">Free tool · no sign-up</p>
-  <h1>Macro calculator for desk-job lifters</h1>
+  <h1>TDEE &amp; macro calculator for desk-job lifters</h1>
   <p class="lede">Calories and macros for fat loss without crash diets. Same approach I used to go 89 → 80 kg in 5 months with a desk job. Nothing you type leaves your phone.</p>
 
   <form id="calc" novalidate>
@@ -158,13 +174,33 @@ a { color: var(--accent); }
       <p class="kcal"><span id="kcal"></span> <small>kcal / day</small></p>
       <p class="sub" id="sub"></p>
       <div class="bar" aria-hidden="true"><i id="bp"></i><i id="bc"></i><i id="bf"></i></div>
-      <dl>
-        <div><dt>Protein</dt><dd><span id="p"></span> <small>g</small></dd></div>
-        <div><dt>Carbs</dt><dd><span id="c"></span> <small>g</small></dd></div>
-        <div><dt>Fat</dt><dd><span id="f"></span> <small>g</small></dd></div>
+      <dl class="macros">
+        <div><dt>Protein</dt><dd><span id="p"></span> <small>g</small><small class="split" id="ps"></small></dd></div>
+        <div><dt>Carbs</dt><dd><span id="c"></span> <small>g</small><small class="split" id="cs"></small></dd></div>
+        <div><dt>Fat</dt><dd><span id="f"></span> <small>g</small><small class="split" id="fs"></small></dd></div>
       </dl>
       <p class="note"><strong>How to use:</strong> hit calories and protein every day, let carbs and fat flex, and only adjust by ~150 kcal if your weekly average weight hasn't moved in 2–3 weeks.</p>
     </div>
+  </section>
+
+  <section class="result more" id="more" aria-labelledby="bh" hidden>
+    <h2 id="bh">Full breakdown</h2>
+    <dl class="rows">
+      <div><dt>BMR<small>Burned at total rest (Mifflin-St Jeor)</small></dt><dd id="xBmr"></dd></div>
+      <div><dt>TDEE / maintenance<small>BMR × your activity level</small></dt><dd id="xTdee"></dd></div>
+      <div><dt>Daily deficit / surplus<small>Your target vs maintenance</small></dt><dd id="xDiff"></dd></div>
+      <div><dt>Expected rate<small>If you hit the target most days</small></dt><dd id="xRate"></dd></div>
+      <div><dt>BMI<small>Height vs weight; ignores muscle</small></dt><dd id="xBmi"></dd></div>
+      <div><dt>Protein range<small>1.6–2.2 g per kg</small></dt><dd id="xPr"></dd></div>
+      <div><dt>Protein per meal<small>Split over 4 meals</small></dt><dd id="xPm"></dd></div>
+      <div><dt>Fibre<small>14 g per 1,000 kcal</small></dt><dd id="xFib"></dd></div>
+      <div><dt>Water<small>~35 ml per kg, more on gym days</small></dt><dd id="xWater"></dd></div>
+    </dl>
+    <h3>Calories &amp; macros by goal</h3>
+    <table>
+      <thead><tr><th scope="col">Goal</th><th scope="col">kcal</th><th scope="col">Protein</th><th scope="col">Carbs</th><th scope="col">Fat</th></tr></thead>
+      <tbody id="goals"></tbody>
+    </table>
   </section>
 
   <details>
@@ -174,6 +210,9 @@ a { color: var(--accent); }
       <li>Activity: desk job + lifting 3–4x is honestly "lightly active" (×1.375). Many calculators bump gym-goers to ×1.55, which overestimates and stalls fat loss.</li>
       <li>Fat loss: 20% under maintenance, never below your BMR or 1,500 / 1,200 kcal (men / women).</li>
       <li>Protein: 2.0 g/kg when cutting, 1.8 g/kg otherwise. Fat: 0.8 g/kg, at least 20% of calories. Carbs: the rest. Above a BMI of 30, grams are based on a BMI-30 weight so targets stay realistic.</li>
+      <li>Expected rate: ~7,700 kcal ≈ 1 kg of body fat. Aim for 0.5–1% of bodyweight a week on a cut. Week-one drops are mostly water.</li>
+      <li>BMI uses WHO cut-offs (25 / 30). For South Asians, risk starts lower (23 / 27.5). Lifters with muscle can read "overweight" while lean.</li>
+      <li>Fibre: 14 g per 1,000 kcal (US dietary guidelines). Water: ~35 ml per kg is a rough baseline, add more for heat and training.</li>
       <li>These are starting estimates, not medical advice. Your scale trend is the real test.</li>
     </ul>
   </details>
@@ -188,11 +227,28 @@ function macros({ sex, age, cm, kg, activity, goal }) {
   let kcal = tdee * { lose: 0.8, maintain: 1, gain: 1.1 }[goal];
   if (goal === 'lose') kcal = Math.min(tdee, Math.max(kcal, bmr, sex === 'male' ? 1500 : 1200)); // no crash diets, never a surplus
   kcal = Math.floor(kcal / 10) * 10; // round down: a cut never rounds into a surplus
-  const refKg = Math.min(kg, 30 * (cm / 100) ** 2); // cap at BMI-30 weight so 140 kg doesn't mean 280 g protein
+  const refKg = refWeight(kg, cm);
   const protein = Math.round(refKg * (goal === 'lose' ? 2.0 : 1.8));
   const fat = Math.round(Math.max(0.8 * refKg, 0.2 * kcal / 9));
   const carbs = Math.max(0, Math.round((kcal - protein * 4 - fat * 9) / 4));
   return { bmr: Math.round(bmr), tdee: Math.round(tdee), kcal, protein, fat, carbs };
+}
+
+// Cap at BMI-30 weight so 140 kg doesn't mean 280 g protein.
+const refWeight = (kg, cm) => Math.min(kg, 30 * (cm / 100) ** 2);
+
+// Everything else derived from the same inputs and the macros() result.
+function extras({ kg, cm }, r) {
+  const bmi = kg / (cm / 100) ** 2, refKg = refWeight(kg, cm);
+  return {
+    bmi: Math.round(bmi * 10) / 10,
+    bmiClass: bmi < 18.5 ? 'Underweight' : bmi < 25 ? 'Healthy range' : bmi < 30 ? 'Overweight' : 'Obese',
+    proteinRange: [Math.round(1.6 * refKg), Math.round(2.2 * refKg)],
+    proteinPerMeal: Math.round(r.protein / 4),
+    fibre: Math.round(r.kcal * 14 / 1000),
+    waterL: Math.round(kg * 0.35) / 10,
+    kgPerWeek: Math.round((r.kcal - r.tdee) * 7 / 7700 * 100) / 100, // ~7,700 kcal per kg of fat
+  };
 }
 </script>
 <script>
@@ -226,18 +282,44 @@ function update(e) {
     ? `= ${Math.round(cm)} cm` : '';
   const ok = form.checkValidity();
   $('empty').hidden = ok;
-  $('out').hidden = !ok;
+  $('out').hidden = $('more').hidden = !ok;
   if (!ok) return;
-  const r = macros({
+  const lb = f.wunit.value === 'lb';
+  const input = {
     sex: f.sex.value, age: +f.age.value, activity: +f.activity.value, goal: f.goal.value,
-    kg: f.wunit.value === 'lb' ? f.lb.value * LB : +f.kg.value, cm,
-  });
+    kg: lb ? f.lb.value * LB : +f.kg.value, cm,
+  };
+  const r = macros(input), x = extras(input, r);
   const pct = Math.round(Math.abs(1 - r.kcal / r.tdee) * 100);
   $('kcal').textContent = fmt(r.kcal);
   $('sub').textContent = `Maintenance ≈ ${fmt(r.tdee)} kcal` +
-    (pct ? ` · ${pct}% ${r.kcal < r.tdee ? 'deficit' : 'surplus'}` : '');
-  $('p').textContent = r.protein; $('c').textContent = r.carbs; $('f').textContent = r.fat;
-  $('bp').style.flex = r.protein * 4; $('bc').style.flex = r.carbs * 4; $('bf').style.flex = r.fat * 9;
+    (pct ? ` · ${pct}% ${r.kcal < r.tdee ? 'deficit' : 'surplus'}` : '') +
+    (input.goal === 'lose' && x.bmi < 18.5 ? '. Your BMI is under 18.5, so maintain or gain instead of cutting.' : '');
+  for (const [id, g, k] of [['p', r.protein, 4], ['c', r.carbs, 4], ['f', r.fat, 9]]) {
+    $(id).textContent = g;
+    $(id + 's').textContent = `${Math.round(g * k / r.kcal * 100)}% · ${fmt(g * k)} kcal`;
+    $('b' + id).style.flex = g * k;
+  }
+
+  const diff = r.kcal - r.tdee, perWeek = lb ? x.kgPerWeek / LB : x.kgPerWeek;
+  $('xBmr').textContent = `${fmt(r.bmr)} kcal`;
+  $('xTdee').textContent = `${fmt(r.tdee)} kcal`;
+  $('xDiff').textContent = Math.abs(diff) >= 10 ? `${diff < 0 ? '−' : '+'}${fmt(Math.abs(diff))} kcal` : 'None';
+  $('xRate').innerHTML = Math.abs(perWeek) < 0.05 ? 'Weight holds steady'
+    : `${diff < 0 ? '−' : '+'}${Math.abs(perWeek).toFixed(1)} ${lb ? 'lb' : 'kg'} / week` +
+      `<small>${(Math.abs(x.kgPerWeek) / input.kg * 100).toFixed(1)}% of bodyweight</small>`;
+  $('xBmi').innerHTML = `${x.bmi}<small>${x.bmiClass}</small>`;
+  $('xPr').textContent = `${x.proteinRange[0]}–${x.proteinRange[1]} g`;
+  $('xPm').textContent = `~${x.proteinPerMeal} g`;
+  $('xFib').textContent = `${x.fibre} g`;
+  $('xWater').textContent = `${x.waterL} L`;
+
+  const names = { lose: 'Fat loss', maintain: 'Maintain', gain: 'Lean gain' };
+  $('goals').innerHTML = Object.keys(names).map(goal => {
+    const g = macros({ ...input, goal });
+    return `<tr${goal === input.goal ? ' class="on"' : ''}><td>${names[goal]}</td><td>${fmt(g.kcal)}</td>` +
+      `<td>${g.protein} g</td><td>${g.carbs} g</td><td>${g.fat} g</td></tr>`;
+  }).join(''); // numbers only, no user text, so innerHTML is safe
 }
 
 form.addEventListener('input', update);
