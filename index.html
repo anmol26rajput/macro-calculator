@@ -120,6 +120,9 @@ main { max-width: var(--wide); margin: 0 auto; padding: 0 var(--gutter); }
 .sub-fs { border: 0; margin: 0 0 16px; padding: 0; min-width: 0; }
 .sub-fs > legend, .lbl { display: block; padding: 0; margin: 0 0 7px; font-size: .86rem; font-weight: 600; color: var(--muted); }
 .lbl small, .sub-fs > legend small { font-weight: 400; }
+.clear { padding: 10px 0; border: 0; background: none; color: var(--muted); font: inherit; font-size: .9rem; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.clear:hover { color: var(--accent); }
+.clear:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
 .field:has(input:user-invalid) .lbl::after { content: " · " attr(data-err); color: var(--bad); font-weight: 500; }
 
 .units { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
@@ -539,6 +542,7 @@ main > :nth-child(2) { animation-delay: .08s; } main > :nth-child(3) { animation
       </div>
     </fieldset>
     </div>
+    <button type="reset" class="clear">Clear form</button>
   </form>
 
   <aside class="board" id="results" aria-labelledby="rh">
@@ -921,9 +925,28 @@ function update(e) {
   peek();
 }
 
+// Remember what was typed on this device, so a refresh doesn't wipe the form. Wrapped in try: storage can be blocked.
+const KEY = 'macro-calc', saved = () => [...form.querySelectorAll('input[name]'), ...document.querySelectorAll('[name=bmiScale]')];
+function save() {
+  const d = {};
+  for (const i of saved()) if (i.type !== 'radio') d[i.name] = i.value; else if (i.checked) d[i.name] = i.value;
+  try { localStorage.setItem(KEY, JSON.stringify(d)); } catch {}
+}
+try {
+  const d = JSON.parse(localStorage.getItem(KEY)) || {};
+  for (const i of saved()) if (i.name in d) i.type === 'radio' ? i.checked = i.value === d[i.name] : i.value = d[i.name];
+} catch {}
+
 form.addEventListener('input', update);
+form.addEventListener('input', save); // after update, so unit conversions and goal locks are saved too
 form.addEventListener('submit', e => e.preventDefault());
+form.addEventListener('reset', () => {
+  try { localStorage.removeItem(KEY); } catch {}
+  document.querySelector('[name=bmiScale][value=who]').checked = true;
+  setTimeout(update); // the browser clears the fields right after this event
+});
 document.querySelector('.bmi-scale').addEventListener('input', update);
+document.querySelector('.bmi-scale').addEventListener('input', save);
 addEventListener('scroll', peek, { passive: true });
 addEventListener('resize', peek);
 
