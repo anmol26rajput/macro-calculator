@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 
 const html = readFileSync(new URL('./index.html', import.meta.url), 'utf8');
 const src = html.match(/<script id="macros">([\s\S]*?)<\/script>/)[1];
-const { macros, extras } = new Function(`${src}; return { macros, extras };`)();
+const { macros, extras, bmiInfo } = new Function(`${src}; return { macros, extras, bmiInfo };`)();
 
 // Hand-worked: male 30y 178cm 89kg, desk job + lifts, fat loss.
 // BMR 1857.5 -> x1.375 = 2554 -> -20% = 2043 -> 2040 kcal; protein 2.0*89; fat 0.8*89; carbs = rest.
@@ -26,6 +26,13 @@ assert.deepEqual(extras(me, macros(me)), {
   fibre: 29, waterL: 3.1, kgPerWeek: -0.47,
 });
 assert.ok(Math.abs(extras(me, macros({ ...me, goal: 'maintain' })).kgPerWeek) < 0.01); // maintenance ≈ no change
+
+// BMI at 178 cm, 89 kg: 89 / 1.78^2 = 28.1. Healthy range 18.5-24.9 (WHO) or 18.5-22.9 (South Asian) x 1.78^2.
+assert.deepEqual(bmiInfo(89, 178), { bmi: 28.1, category: 'Overweight', healthyKg: [58.6, 78.9], kgOff: 10.1, cuts: [18.5, 25, 30] });
+assert.deepEqual(bmiInfo(89, 178, 'asian'), { bmi: 28.1, category: 'Obese', healthyKg: [58.6, 72.6], kgOff: 16.4, cuts: [18.5, 23, 27.5] });
+assert.equal(bmiInfo(70, 178).kgOff, 0);       // 22.1: inside the range
+assert.equal(bmiInfo(55, 178).kgOff, -3.6);    // below: 55 - 58.6
+assert.equal(bmiInfo(70, 178, 'asian').category, 'Healthy range');
 
 // Invariants across a sweep of realistic inputs.
 let n = 0;

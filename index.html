@@ -23,7 +23,7 @@
   --text: #1d1915; --muted: #685f55; --line: #d5ccbf; --edge: #cdc3b4; --edge-deep: #b3a796;
   --hi: rgba(255, 255, 255, .95); --shadow: rgba(84, 58, 32, .26); --shadow-in: rgba(84, 58, 32, .18);
   --accent: #c2461b; --accent-soft: #f5dfd3; --glow: rgba(194, 70, 27, .45);
-  --p: var(--accent); --c: #cfab72; --f: #5a4d42; --bad: #b3261e;
+  --p: var(--accent); --c: #cfab72; --f: #5a4d42; --bad: #b3261e; --ok: #5c8752; --warn: #cf8a2e;
   --display: "Archivo", "Arial Narrow", system-ui, sans-serif;
   --spring: cubic-bezier(.2, .8, .2, 1);
   --gutter: clamp(14px, 4vw, 96px);
@@ -35,7 +35,7 @@
     --text: #f2ede6; --muted: #a3998d; --line: #2f2a25; --edge: #37312b; --edge-deep: #050404;
     --hi: rgba(255, 255, 255, .07); --shadow: rgba(0, 0, 0, .6); --shadow-in: rgba(0, 0, 0, .55);
     --accent: #f06a3e; --accent-soft: #3a2118; --glow: rgba(240, 106, 62, .55);
-    --c: #d8b983; --f: #8b7e71; --bad: #f2948c;
+    --c: #d8b983; --f: #8b7e71; --bad: #f2948c; --ok: #8fbd80; --warn: #e2a24f;
   }
 }
 
@@ -203,17 +203,28 @@ input:user-invalid { border-color: var(--bad); }
 
 .sub { margin: 0; text-align: center; color: var(--muted); font-size: .92rem; text-wrap: balance; }
 .macros { margin: 16px 0 14px; }
-.macros div {
-  display: grid; grid-template-columns: 12px 1fr auto; align-items: center; gap: 12px;
-  padding: 11px 0; border-bottom: 1px dashed var(--line);
-}
-.macros div::before { content: ""; width: 12px; height: 12px; border-radius: 4px; background: var(--dot); box-shadow: inset 0 -2px 0 rgba(0, 0, 0, .22); }
-.macros div:nth-child(1) { --dot: var(--p); } .macros div:nth-child(2) { --dot: var(--c); } .macros div:nth-child(3) { --dot: var(--f); }
-.macros dt { font-weight: 600; }
-.macros dd { margin: 0; text-align: right; }
-.macros dd b { font-weight: 800; font-stretch: 72%; font-size: 1.7rem; line-height: 1; font-variant-numeric: tabular-nums; }
-.macros dd .g { color: var(--muted); font-size: .9rem; margin-left: 2px; }
-.macros dd small { display: block; color: var(--muted); font-size: .76rem; margin-top: 2px; }
+.macros details { border-bottom: 1px dashed var(--line); }
+.macros details:nth-child(1) { --dot: var(--p); } .macros details:nth-child(2) { --dot: var(--c); } .macros details:nth-child(3) { --dot: var(--f); }
+.macros summary { display: grid; grid-template-columns: 12px 1fr auto 16px; align-items: center; gap: 12px; padding: 11px 0; }
+.macros summary::before { content: ""; width: 12px; height: 12px; border-radius: 4px; background: var(--dot); box-shadow: inset 0 -2px 0 rgba(0, 0, 0, .22); }
+.mname { font-weight: 600; }
+.mval { text-align: right; }
+.mval b { font-weight: 800; font-stretch: 72%; font-size: 1.7rem; line-height: 1; font-variant-numeric: tabular-nums; }
+.mval .g { color: var(--muted); font-size: .9rem; margin-left: 2px; }
+.mval small { display: block; color: var(--muted); font-size: .76rem; margin-top: 2px; }
+.macros .tip > p { margin: 0 0 12px 24px; }
+
+/* Tap-to-explain: native <details>; the + turns into × when open. */
+.tip > summary { list-style: none; cursor: pointer; position: relative; -webkit-user-select: none; user-select: none; }
+.tip > summary::-webkit-details-marker { display: none; }
+.tip > summary::after { content: "+"; justify-self: end; color: var(--accent); font-size: 1.3rem; font-weight: 400; line-height: 1; transition: transform .25s var(--spring); }
+.tip[open] > summary::after { transform: rotate(45deg); }
+.tip > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 8px; }
+.tip > p { margin: 0 0 12px; font-size: .88rem; line-height: 1.5; text-wrap: pretty; animation: rise .35s var(--spring) both; }
+.explain > summary { display: inline-flex; align-items: center; gap: 6px; padding: 8px 0; font-size: .86rem; font-weight: 600; color: var(--accent); }
+.explain > summary::after { font-size: 1.1rem; }
+.kexp { text-align: center; }
+.kexp > p { text-align: left; }
 .note { margin: 0; font-size: .92rem; text-wrap: pretty; }
 .note b { color: var(--accent); }
 
@@ -222,18 +233,47 @@ input:user-invalid { border-color: var(--bad); }
 .more.is-empty { display: none; }
 .more > h2 { margin: 0 0 4px; font-size: clamp(1.9rem, 8vw, 2.6rem); font-weight: 800; font-stretch: 70%; text-transform: uppercase; line-height: 1; }
 .more > p { margin: 0 0 18px; color: var(--muted); }
-.stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 0; }
-.stats div {
-  display: flex; flex-direction: column-reverse; justify-content: flex-end; gap: 4px;
+.stats { display: grid; grid-template-columns: 1fr 1fr; grid-auto-flow: dense; gap: 10px; margin: 0; }
+.stats > details[open] { grid-column: 1 / -1; } /* an opened tile takes the full row so its text has room */
+.stats > details {
   padding: 14px; border-radius: 16px; background: var(--sunk);
   box-shadow: inset 0 2px 6px var(--shadow-in), 0 1px 0 var(--hi);
 }
-.stats div:first-child { grid-column: span 2; background: linear-gradient(170deg, var(--raised), var(--surface)); box-shadow: inset 0 1px 0 var(--hi), 0 2px 0 var(--edge-deep), 0 20px 30px -22px var(--shadow); border: 1px solid var(--edge); }
-.stats dt { font-size: .86rem; font-weight: 600; }
-.stats dt small { display: block; color: var(--muted); font-weight: 400; font-size: .78rem; line-height: 1.35; }
-.stats dd { margin: 0; font-weight: 800; font-stretch: 72%; font-size: 1.65rem; line-height: 1.05; font-variant-numeric: tabular-nums; }
-.stats dd small { display: block; font-stretch: 100%; font-weight: 500; font-size: .8rem; color: var(--accent); margin-top: 3px; }
-.stats div:first-child dd { font-size: 2.3rem; }
+.stats > details:first-child { grid-column: span 2; background: linear-gradient(170deg, var(--raised), var(--surface)); box-shadow: inset 0 1px 0 var(--hi), 0 2px 0 var(--edge-deep), 0 20px 30px -22px var(--shadow); border: 1px solid var(--edge); }
+.stats summary { display: flex; flex-direction: column; gap: 3px; padding-right: 20px; }
+.stats summary::after { position: absolute; top: -3px; right: -2px; }
+.stats .v { margin-bottom: 2px; font-weight: 800; font-stretch: 72%; font-size: 1.65rem; line-height: 1.05; font-variant-numeric: tabular-nums; }
+.stats .v small { display: block; font-stretch: 100%; font-weight: 500; font-size: .8rem; color: var(--accent); margin-top: 3px; }
+.stats .k { font-size: .86rem; font-weight: 600; }
+.stats .d { color: var(--muted); font-size: .78rem; line-height: 1.35; }
+.stats > details:first-child .v { font-size: 2.3rem; }
+.stats > details > p { margin: 10px 0 0; padding-top: 10px; border-top: 1px dashed var(--line); }
+.range { position: relative; height: 6px; margin: 8px 6px 2px 0; border-radius: 3px; background: linear-gradient(90deg, color-mix(in oklab, var(--p) 30%, transparent), var(--p)); }
+.range i { position: absolute; top: 50%; left: var(--at, 50%); width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%; background: var(--raised); border: 2px solid var(--p); transition: left .5s var(--spring); }
+
+/* ---------- BMI ---------- */
+.bmi {
+  margin-top: 22px; padding: 18px 16px 8px; border-radius: 20px; border: 1px solid var(--edge);
+  background: linear-gradient(170deg, var(--raised), var(--surface));
+  box-shadow: inset 0 1px 0 var(--hi), 0 2px 0 var(--edge-deep), 0 20px 30px -22px var(--shadow);
+}
+.bmi-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px 16px; }
+.bmi h3 { margin: 0; font-size: 1.05rem; }
+.bmi-scale { border: 0; margin: 0; padding: 0; min-width: 0; }
+.bmi-scale .key span { padding: 7px 12px; font-size: .85rem; }
+.bmi-now { display: flex; align-items: baseline; gap: 10px; margin: 14px 0 12px; }
+.bmi-now b { font-weight: 800; font-stretch: 70%; font-size: 3rem; line-height: 1; font-variant-numeric: tabular-nums; }
+.bmi-now span { font-weight: 700; color: var(--accent); }
+.bmi-now span.ok { color: var(--ok); }
+.gauge {
+  position: relative; height: 12px; border-radius: 6px; box-shadow: inset 0 2px 3px rgba(0, 0, 0, .25);
+  background: linear-gradient(90deg, var(--f) 0 var(--u), var(--ok) 0 var(--o), var(--warn) 0 var(--ob), var(--accent) 0);
+}
+.gauge i { position: absolute; top: 50%; left: var(--at, 0%); width: 6px; height: 24px; margin: -12px 0 0 -3px; border-radius: 3px; background: var(--text); box-shadow: 0 0 0 2px var(--raised), 0 4px 8px var(--shadow); transition: left .6s var(--spring); }
+.ticks { position: relative; height: 18px; margin-top: 6px; font-size: .74rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.ticks span { position: absolute; transform: translateX(-50%); }
+.bmi-facts { display: grid; gap: 2px; margin: 8px 0 4px; font-size: .92rem; }
+.bmi-facts b { font-weight: 700; }
 
 .goals { margin-top: 26px; }
 .goals h3 { margin: 0 0 8px; font-size: 1.05rem; }
@@ -300,12 +340,12 @@ main > :nth-child(2) { animation-delay: .08s; } main > :nth-child(3) { animation
 }
 @container more (min-width: 520px) {
   .stats { grid-template-columns: repeat(3, 1fr); }
-  .stats div:first-child { grid-column: span 2; grid-row: span 2; justify-content: center; } /* 2x2 + 8 tiles = no gaps */
-  .stats div:first-child dd { font-size: 2.9rem; }
+  .stats > details:first-child { grid-column: span 2; grid-row: span 2; } /* 2x2 + 8 tiles = no gaps */
+  .stats > details:first-child .v { font-size: 2.9rem; }
 }
 @container more (min-width: 860px) {
   .stats { grid-template-columns: repeat(4, 1fr); }
-  .stats div:first-child dd { font-size: 3.4rem; }
+  .stats > details:first-child .v { font-size: 3.4rem; }
   .goals { max-width: 46rem; }
 }
 /* Laptop / desktop: form left, results pinned right, breakdown full width. */
@@ -334,7 +374,6 @@ main > :nth-child(2) { animation-delay: .08s; } main > :nth-child(3) { animation
 }
 /* Pin panels only when the screen is tall enough to show them whole. */
 @media (min-width: 960px) and (min-height: 740px) { .board { position: sticky; top: 16px; } }
-@media (min-width: 1680px) and (min-height: 1000px) { .more { position: sticky; top: 24px; } }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
   html { scroll-behavior: auto; }
@@ -435,11 +474,16 @@ main > :nth-child(2) { animation-delay: .08s; } main > :nth-child(3) { animation
           <div class="plate" id="plate"><div class="hub"><b id="kcal"></b><small>kcal / day</small></div></div>
         </div>
         <p class="sub" id="sub"></p>
-        <dl class="macros">
-          <div><dt>Protein</dt><dd><b id="p"></b><span class="g">g</span><small id="ps"></small></dd></div>
-          <div><dt>Carbs</dt><dd><b id="c"></b><span class="g">g</span><small id="cs"></small></dd></div>
-          <div><dt>Fat</dt><dd><b id="f"></b><span class="g">g</span><small id="fs"></small></dd></div>
-        </dl>
+        <details class="tip explain kexp"><summary>What is this number?</summary>
+          <p>How much to eat each day for your goal. For fat loss it sits about 20% below what you burn, so your body covers the gap with stored fat. Close to it most days is what works; you don't need to be perfect.</p></details>
+        <div class="macros">
+          <details class="tip"><summary><span class="mname">Protein</span><span class="mval"><b id="p"></b><span class="g">g</span><small id="ps"></small></span></summary>
+            <p>Builds and protects muscle, and keeps you full when you're eating less. Chicken, eggs, fish, paneer, Greek yogurt or curd, dal, tofu, whey. Spread it across your meals.</p></details>
+          <details class="tip"><summary><span class="mname">Carbs</span><span class="mval"><b id="c"></b><span class="g">g</span><small id="cs"></small></span></summary>
+            <p>Your main fuel for training. Rice, roti, oats, potatoes, fruit. Carbs don't make you fat on their own; eating more total calories than you burn does. Eat more of them around your workouts.</p></details>
+          <details class="tip"><summary><span class="mname">Fat</span><span class="mval"><b id="f"></b><span class="g">g</span><small id="fs"></small></span></summary>
+            <p>Keeps your hormones healthy and helps you absorb vitamins. Oil, ghee, butter, nuts, eggs, cheese. The easiest one to overdo: one tablespoon of oil is about 120 kcal, so measure it.</p></details>
+        </div>
         <p class="note"><b>How to use:</b> hit calories and protein every day, let carbs and fat flex, and only adjust by ~150 kcal if your weekly average weight hasn't moved in 2–3 weeks.</p>
       </div>
       <p class="sr-only" id="sr" aria-live="polite"></p>
@@ -449,23 +493,53 @@ main > :nth-child(2) { animation-delay: .08s; } main > :nth-child(3) { animation
   <section class="more is-empty" id="more" aria-labelledby="bh">
     <h2 id="bh">The full breakdown</h2>
     <p>Everything else your stats tell us.</p>
-    <dl class="stats">
-      <div><dt>TDEE / maintenance<small>BMR × your activity level. Eat this and your weight holds.</small></dt><dd id="xTdee"></dd></div>
-      <div><dt>BMR<small>Burned at total rest</small></dt><dd id="xBmr"></dd></div>
-      <div><dt>Daily deficit / surplus<small>Target vs maintenance</small></dt><dd id="xDiff"></dd></div>
-      <div><dt>Expected rate<small>If you hit it most days</small></dt><dd id="xRate"></dd></div>
-      <div><dt>BMI<small>Ignores muscle</small></dt><dd id="xBmi"></dd></div>
-      <div><dt>Protein range<small>1.6–2.2 g per kg</small></dt><dd id="xPr"></dd></div>
-      <div><dt>Protein per meal<small>Split over 4 meals</small></dt><dd id="xPm"></dd></div>
-      <div><dt>Fibre<small>14 g per 1,000 kcal</small></dt><dd id="xFib"></dd></div>
-      <div><dt>Water<small>~35 ml per kg, more on gym days</small></dt><dd id="xWater"></dd></div>
-    </dl>
+    <div class="stats">
+      <details class="tip"><summary><span class="v" id="xTdee"></span><span class="k">TDEE / maintenance</span><span class="d">BMR × your activity level. Eat this and your weight holds.</span></summary>
+        <p>Everything you burn in a day: your body at rest, moving around, and training. Eat this much and your weight stays about the same. It's an estimate, so treat it as a starting point and adjust based on your weekly average weight.</p></details>
+      <details class="tip"><summary><span class="v" id="xBmr"></span><span class="k">BMR</span><span class="d">Burned at total rest</span></summary>
+        <p>What your body burns if you stayed in bed all day: breathing, heartbeat, keeping warm. You burn more than this every day, so don't diet below it.</p></details>
+      <details class="tip"><summary><span class="v" id="xDiff"></span><span class="k">Daily deficit / surplus</span><span class="d">Target vs maintenance</span></summary>
+        <p>The gap between what you eat and what you burn. Eat less than you burn and you lose fat; eat a bit more and you have energy to build muscle. About 500 kcal a day adds up to roughly 0.5 kg a week.</p></details>
+      <details class="tip"><summary><span class="v" id="xRate"></span><span class="k">Expected rate</span><span class="d">If you hit it most days</span></summary>
+        <p>How fast your weight should change. Your weight moves up and down daily with water, salt and food, so compare weekly averages, not single mornings. Week one often drops faster because of water.</p></details>
+      <details class="tip"><summary><span class="v" id="xPr"></span><span class="k">Protein range</span><span class="d" id="xPrNote">1.6–2.2 g per kg</span><span class="range" aria-hidden="true"><i id="xPrMark"></i></span></summary>
+        <p>Research shows 1.6–2.2 g of protein per kg of body weight is enough to build and keep muscle. Your daily target sits inside this range. Landing anywhere in it is a good day, so you don't need to hit the exact number.</p></details>
+      <details class="tip"><summary><span class="v" id="xPm"></span><span class="k">Protein per meal</span><span class="d">Split over 4 meals</span></summary>
+        <p>Spreading protein over a few meals helps your body use it for muscle better than one huge meal. Think one main protein food per meal: chicken, fish, eggs, paneer, tofu or a whey shake.</p></details>
+      <details class="tip"><summary><span class="v" id="xFib"></span><span class="k">Fibre</span><span class="d">14 g per 1,000 kcal</span></summary>
+        <p>Keeps digestion regular and keeps you full, which helps a lot on a diet. Vegetables, fruit, oats, dal, beans, whole grains. Most people eat about half of this.</p></details>
+      <details class="tip"><summary><span class="v" id="xWater"></span><span class="k">Water</span><span class="d">~35 ml per kg</span></summary>
+        <p>A rough daily baseline. Drink more in hot weather and on gym days. If your pee is pale yellow, you're drinking enough.</p></details>
+      <details class="tip"><summary><span class="v" id="xWeek"></span><span class="k">Weekly calories</span><span class="d">Your daily target × 7</span></summary>
+        <p>For fat loss the week matters more than any single day. Eating a bit less on weekdays to leave room for a weekend meal out is fine, as long as the weekly total stays the same.</p></details>
+    </div>
+
+    <section class="bmi" aria-labelledby="bmih">
+      <div class="bmi-head">
+        <h3 id="bmih">BMI</h3>
+        <fieldset class="bmi-scale">
+          <legend class="sr-only">BMI cut-offs</legend>
+          <div class="seg">
+            <label class="key"><input type="radio" name="bmiScale" value="who" checked><span>Standard</span></label>
+            <label class="key"><input type="radio" name="bmiScale" value="asian"><span>South Asian</span></label>
+          </div>
+        </fieldset>
+      </div>
+      <p class="bmi-now"><b id="bmiVal">—</b><span id="bmiCat"></span></p>
+      <div class="gauge" id="gauge" aria-hidden="true"><i></i></div>
+      <div class="ticks" id="ticks" aria-hidden="true"></div>
+      <p class="bmi-facts"><span>Healthy weight for your height: <b id="bmiRange">—</b></span><span id="bmiGap"></span></p>
+      <details class="tip explain"><summary>What does BMI mean?</summary>
+        <p>Your weight (kg) divided by your height (m) squared. It's a quick screen for health risk, not a measure of body fat, so muscular people often show "overweight" while being lean. South Asians tend to carry more fat at the same BMI, so risk starts lower (23 instead of 25). Switch to South Asian cut-offs if that's you.</p></details>
+    </section>
     <div class="goals">
       <h3>Calories &amp; macros by goal</h3>
       <table>
         <thead><tr><th scope="col">Goal</th><th scope="col">kcal</th><th scope="col">Protein</th><th scope="col">Carbs</th><th scope="col">Fat</th></tr></thead>
         <tbody id="goals"></tbody>
       </table>
+      <details class="tip explain"><summary>Why do the numbers change?</summary>
+        <p>Protein stays high so you keep or build muscle, fat stays about the same, and carbs take whatever calories are left. That's why carbs change the most between goals.</p></details>
     </div>
   </section>
 
@@ -508,15 +582,30 @@ const refWeight = (kg, cm) => Math.min(kg, 30 * (cm / 100) ** 2);
 
 // Everything else derived from the same inputs and the macros() result.
 function extras({ kg, cm }, r) {
-  const bmi = kg / (cm / 100) ** 2, refKg = refWeight(kg, cm);
+  const b = bmiInfo(kg, cm), refKg = refWeight(kg, cm);
   return {
-    bmi: Math.round(bmi * 10) / 10,
-    bmiClass: bmi < 18.5 ? 'Underweight' : bmi < 25 ? 'Healthy range' : bmi < 30 ? 'Overweight' : 'Obese',
+    bmi: b.bmi,
+    bmiClass: b.category,
     proteinRange: [Math.round(1.6 * refKg), Math.round(2.2 * refKg)],
     proteinPerMeal: Math.round(r.protein / 4),
     fibre: Math.round(r.kcal * 14 / 1000),
     waterL: Math.round(kg * 0.35) / 10,
     kgPerWeek: Math.round((r.kcal - r.tdee) * 7 / 7700 * 100) / 100, // ~7,700 kcal per kg of fat
+  };
+}
+
+// BMI cut-offs: [underweight below, overweight from, obese from]. South Asian risk starts lower.
+const BMI_CUTS = { who: [18.5, 25, 30], asian: [18.5, 23, 27.5] };
+function bmiInfo(kg, cm, scale = 'who') {
+  const m2 = (cm / 100) ** 2, bmi = kg / m2, cuts = BMI_CUTS[scale], [under, over, obese] = cuts;
+  const lo = under * m2, hi = (over - 0.1) * m2; // healthy weight range for this height
+  const r1 = n => Math.round(n * 10) / 10;
+  return {
+    bmi: r1(bmi),
+    category: bmi < under ? 'Underweight' : bmi < over ? 'Healthy range' : bmi < obese ? 'Overweight' : 'Obese',
+    healthyKg: [r1(lo), r1(hi)],
+    kgOff: r1(kg > hi ? kg - hi : kg < lo ? kg - lo : 0), // + above the range, - below
+    cuts,
   };
 }
 </script>
@@ -527,7 +616,6 @@ const $ = id => document.getElementById(id);
 const LB = 0.45359237, IN = 2.54;
 const fmt = n => n.toLocaleString('en');
 const names = { lose: 'Fat loss', maintain: 'Maintain', gain: 'Lean gain' };
-let boardBelow = true;
 
 // Carry the typed value over when a unit toggle flips, then show only the active unit's fields.
 function switchUnits(name) {
@@ -545,8 +633,23 @@ function switchUnits(name) {
   }
 }
 
+function renderBmi(kg, cm, lb) {
+  const b = bmiInfo(kg, cm, document.querySelector('[name=bmiScale]:checked').value);
+  const pos = v => Math.min(100, Math.max(0, (v - 15) / 25 * 100)); // gauge spans BMI 15-40
+  const w = v => lb ? Math.round(v / LB) : v, unit = lb ? 'lb' : 'kg';
+  const g = $('gauge');
+  [['--u', b.cuts[0]], ['--o', b.cuts[1]], ['--ob', b.cuts[2]], ['--at', b.bmi]].forEach(([k, v]) => g.style.setProperty(k, `${pos(v)}%`));
+  $('ticks').innerHTML = b.cuts.map(c => `<span style="left:${pos(c)}%">${c}</span>`).join(''); // numbers only
+  $('bmiVal').textContent = b.bmi;
+  $('bmiCat').textContent = b.category;
+  $('bmiCat').className = b.category === 'Healthy range' ? 'ok' : '';
+  $('bmiRange').textContent = `${w(b.healthyKg[0])}–${w(b.healthyKg[1])} ${unit}`;
+  $('bmiGap').textContent = b.kgOff > 0 ? `You're ${w(b.kgOff)} ${unit} above it.`
+    : b.kgOff < 0 ? `You're ${w(-b.kgOff)} ${unit} below it.` : "You're inside it.";
+}
+
 // Show the floating summary only while the results are still further down the page.
-function peek() { $('peek').classList.toggle('show', !$('out').hidden && boardBelow); }
+function peek() { $('peek').classList.toggle('show', !$('out').hidden && $('results').getBoundingClientRect().top > innerHeight * 0.8); }
 
 function update(e) {
   switchUnits(e && e.target.name);
@@ -560,7 +663,9 @@ function update(e) {
   $('out').hidden = !ok;
   $('more').classList.toggle('is-empty', !ok);
   if (!ok) {
-    for (const id of ['xTdee', 'xBmr', 'xDiff', 'xRate', 'xBmi', 'xPr', 'xPm', 'xFib', 'xWater']) $(id).textContent = '—';
+    for (const id of ['xTdee', 'xBmr', 'xDiff', 'xRate', 'xPr', 'xPm', 'xFib', 'xWater', 'xWeek', 'bmiVal', 'bmiRange']) $(id).textContent = '—';
+    $('xPrNote').textContent = '1.6–2.2 g per kg';
+    $('bmiCat').textContent = $('bmiGap').textContent = '';
     $('sr').textContent = '';
     return peek();
   }
@@ -594,11 +699,15 @@ function update(e) {
   $('xRate').innerHTML = Math.abs(perWeek) < 0.05 ? 'Steady'
     : `${diff < 0 ? '−' : '+'}${Math.abs(perWeek).toFixed(1)} ${lb ? 'lb' : 'kg'} / wk` +
       `<small>${(Math.abs(x.kgPerWeek) / input.kg * 100).toFixed(1)}% of bodyweight</small>`;
-  $('xBmi').innerHTML = `${x.bmi}<small>${x.bmiClass}</small>`;
-  $('xPr').textContent = `${x.proteinRange[0]}–${x.proteinRange[1]} g`;
+  const [lo, hi] = x.proteinRange;
+  $('xPr').textContent = `${lo}–${hi} g`;
+  $('xPrNote').textContent = `Your target ${r.protein} g sits inside it`;
+  $('xPrMark').style.setProperty('--at', `${Math.min(100, Math.max(0, (r.protein - lo) / (hi - lo) * 100))}%`);
   $('xPm').textContent = `~${x.proteinPerMeal} g`;
   $('xFib').textContent = `${x.fibre} g`;
   $('xWater').textContent = `${x.waterL} L`;
+  $('xWeek').textContent = `${fmt(r.kcal * 7)} kcal`;
+  renderBmi(input.kg, cm, lb);
 
   $('goals').innerHTML = Object.keys(names).map(goal => {
     const g = macros({ ...input, goal });
@@ -610,7 +719,9 @@ function update(e) {
 
 form.addEventListener('input', update);
 form.addEventListener('submit', e => e.preventDefault());
-new IntersectionObserver(([en]) => { boardBelow = !en.isIntersecting && en.boundingClientRect.top > 0; peek(); }, { threshold: 0.2 }).observe($('results'));
+document.querySelector('.bmi-scale').addEventListener('input', update);
+addEventListener('scroll', peek, { passive: true });
+addEventListener('resize', peek);
 
 // Mouse-only 3D tilt on the results board; touch keeps normal scrolling.
 const tilt = $('tilt');
