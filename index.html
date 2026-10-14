@@ -483,10 +483,10 @@ main > :nth-child(2) { animation-delay: .08s; } main > :nth-child(3) { animation
     <fieldset class="step">
       <legend><span class="num">04</span>Your goal</legend>
       <div class="fields goalw">
-        <label class="field" data-u="kg"><span class="lbl" data-err="35–250">Goal weight <small>(optional)</small></span>
-          <span class="box"><input type="number" name="goalKg" inputmode="decimal" min="35" max="250" step="any" placeholder="75"><i>kg</i></span></label>
-        <label class="field" data-u="lb" hidden><span class="lbl" data-err="77–550">Goal weight <small>(optional)</small></span>
-          <span class="box"><input type="number" name="goalLb" inputmode="decimal" min="77" max="550" step="any" disabled placeholder="165"><i>lb</i></span></label>
+        <label class="field" data-u="kg"><span class="lbl" data-err="35–250">Goal weight</span>
+          <span class="box"><input type="number" name="goalKg" inputmode="decimal" min="35" max="250" step="any" required placeholder="75"><i>kg</i></span></label>
+        <label class="field" data-u="lb" hidden><span class="lbl" data-err="77–550">Goal weight</span>
+          <span class="box"><input type="number" name="goalLb" inputmode="decimal" min="77" max="550" step="any" required disabled placeholder="165"><i>lb</i></span></label>
         <p class="hint wide" id="goalHint"></p>
       </div>
       <div class="stack acts">
@@ -502,7 +502,7 @@ main > :nth-child(2) { animation-delay: .08s; } main > :nth-child(3) { animation
   <aside class="board" id="results" aria-labelledby="rh">
     <div class="board-inner" id="tilt">
       <div class="board-head"><h2 id="rh">Daily targets</h2><span class="tag" id="goalTag">Fat loss</span></div>
-      <div class="empty" id="empty"><div class="ghost" aria-hidden="true"></div><p>Fill in your stats. Your plate loads up here.</p></div>
+      <div class="empty" id="empty"><div class="ghost" aria-hidden="true"></div><p>Fill in your stats and goal weight. Your plate loads up here.</p></div>
       <div id="out" hidden>
         <div class="plate-wrap" aria-hidden="true">
           <div class="plate" id="plate"><div class="hub"><b id="kcal"></b><small>kcal to eat / day</small></div></div>
