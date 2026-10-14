@@ -247,6 +247,11 @@ input:user-invalid { border-color: var(--bad); }
 .stats .k { font-size: .86rem; font-weight: 600; }
 .stats .d { color: var(--muted); font-size: .78rem; line-height: 1.35; }
 .stats > details:first-child .v { font-size: 2.3rem; }
+.eb { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 4px 16px; margin-bottom: 6px; }
+.eb > span:not(.vs) { display: flex; flex-direction: column; }
+.eb .vs { padding-bottom: 1.5em; color: var(--muted); font-size: .9rem; font-weight: 600; }
+#xEat { color: var(--accent); }
+.eb + .d { color: var(--text); font-size: .88rem; }
 .stats > details > p { margin: 10px 0 0; padding-top: 10px; border-top: 1px dashed var(--line); }
 .range { position: relative; height: 6px; margin: 8px 6px 2px 0; border-radius: 3px; background: linear-gradient(90deg, color-mix(in oklab, var(--p) 30%, transparent), var(--p)); }
 .range i { position: absolute; top: 50%; left: var(--at, 50%); width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%; background: var(--raised); border: 2px solid var(--p); transition: left .5s var(--spring); }
@@ -471,7 +476,7 @@ main > :nth-child(2) { animation-delay: .08s; } main > :nth-child(3) { animation
       <div class="empty" id="empty"><div class="ghost" aria-hidden="true"></div><p>Fill in your stats. Your plate loads up here.</p></div>
       <div id="out" hidden>
         <div class="plate-wrap" aria-hidden="true">
-          <div class="plate" id="plate"><div class="hub"><b id="kcal"></b><small>kcal / day</small></div></div>
+          <div class="plate" id="plate"><div class="hub"><b id="kcal"></b><small>kcal to eat / day</small></div></div>
         </div>
         <p class="sub" id="sub"></p>
         <details class="tip explain kexp"><summary>What is this number?</summary>
@@ -494,12 +499,14 @@ main > :nth-child(2) { animation-delay: .08s; } main > :nth-child(3) { animation
     <h2 id="bh">The full breakdown</h2>
     <p>Everything else your stats tell us.</p>
     <div class="stats">
-      <details class="tip"><summary><span class="v" id="xTdee"></span><span class="k">TDEE / maintenance</span><span class="d">BMR × your activity level. Eat this and your weight holds.</span></summary>
+      <details class="tip"><summary>
+          <span class="eb"><span><span class="v" id="xEat"></span><span class="k">kcal you eat</span></span><span class="vs">vs</span><span><span class="v" id="xBurn"></span><span class="k">kcal you burn</span></span></span>
+          <span class="d" id="xGap"></span></summary>
+        <p>The first number is your daily target, what you eat. The second is your maintenance (TDEE), what your body burns in a day. The gap between them is what changes your weight: eat less than you burn and your body uses stored fat to cover the difference. About 7,700 kcal of gap adds up to roughly 1 kg.</p></details>
+      <details class="tip"><summary><span class="v" id="xTdee"></span><span class="k">Maintenance (TDEE)</span><span class="d">What you burn in a day</span></summary>
         <p>Everything you burn in a day: your body at rest, moving around, and training. Eat this much and your weight stays about the same. It's an estimate, so treat it as a starting point and adjust based on your weekly average weight.</p></details>
       <details class="tip"><summary><span class="v" id="xBmr"></span><span class="k">BMR</span><span class="d">Burned at total rest</span></summary>
         <p>What your body burns if you stayed in bed all day: breathing, heartbeat, keeping warm. You burn more than this every day, so don't diet below it.</p></details>
-      <details class="tip"><summary><span class="v" id="xDiff"></span><span class="k">Daily deficit / surplus</span><span class="d">Target vs maintenance</span></summary>
-        <p>The gap between what you eat and what you burn. Eat less than you burn and you lose fat; eat a bit more and you have energy to build muscle. About 500 kcal a day adds up to roughly 0.5 kg a week.</p></details>
       <details class="tip"><summary><span class="v" id="xRate"></span><span class="k">Expected rate</span><span class="d">If you hit it most days</span></summary>
         <p>How fast your weight should change. Your weight moves up and down daily with water, salt and food, so compare weekly averages, not single mornings. Week one often drops faster because of water.</p></details>
       <details class="tip"><summary><span class="v" id="xPr"></span><span class="k">Protein range</span><span class="d" id="xPrNote">1.6–2.2 g per kg</span><span class="range" aria-hidden="true"><i id="xPrMark"></i></span></summary>
@@ -663,8 +670,9 @@ function update(e) {
   $('out').hidden = !ok;
   $('more').classList.toggle('is-empty', !ok);
   if (!ok) {
-    for (const id of ['xTdee', 'xBmr', 'xDiff', 'xRate', 'xPr', 'xPm', 'xFib', 'xWater', 'xWeek', 'bmiVal', 'bmiRange']) $(id).textContent = '—';
+    for (const id of ['xEat', 'xBurn', 'xTdee', 'xBmr', 'xRate', 'xPr', 'xPm', 'xFib', 'xWater', 'xWeek', 'bmiVal', 'bmiRange']) $(id).textContent = '—';
     $('xPrNote').textContent = '1.6–2.2 g per kg';
+    $('xGap').textContent = '';
     $('bmiCat').textContent = $('bmiGap').textContent = '';
     $('sr').textContent = '';
     return peek();
@@ -677,8 +685,8 @@ function update(e) {
   const r = macros(input), x = extras(input, r);
   const pct = Math.round(Math.abs(1 - r.kcal / r.tdee) * 100);
   $('kcal').textContent = fmt(r.kcal);
-  $('sub').textContent = `Maintenance ≈ ${fmt(r.tdee)}\u00a0kcal` +
-    (pct ? ` · ${pct}% ${r.kcal < r.tdee ? 'deficit' : 'surplus'}` : '') +
+  $('sub').textContent = (pct ? `${pct}% ${r.kcal < r.tdee ? 'below' : 'above'} the` : 'About the') +
+    ` ${fmt(r.tdee)}\u00a0kcal you burn a day` +
     (input.goal === 'lose' && x.bmi < 18.5 ? '. Your BMI is under 18.5, so maintain or gain instead of cutting.' : '');
   const share = {};
   for (const [id, g, k] of [['p', r.protein, 4], ['c', r.carbs, 4], ['f', r.fat, 9]]) {
@@ -695,7 +703,11 @@ function update(e) {
   const diff = r.kcal - r.tdee, perWeek = lb ? x.kgPerWeek / LB : x.kgPerWeek;
   $('xBmr').textContent = `${fmt(r.bmr)} kcal`;
   $('xTdee').textContent = `${fmt(r.tdee)} kcal`;
-  $('xDiff').textContent = Math.abs(diff) >= 10 ? `${diff < 0 ? '−' : '+'}${fmt(Math.abs(diff))} kcal` : 'None';
+  $('xEat').textContent = fmt(r.kcal);
+  $('xBurn').textContent = fmt(r.tdee);
+  $('xGap').textContent = Math.abs(diff) < 10 ? 'You eat about what you burn, so your weight holds steady.'
+    : diff < 0 ? `You eat ${fmt(-diff)} kcal less than you burn, so your body uses stored fat to cover the gap.`
+    : `You eat ${fmt(diff)} kcal more than you burn, giving your body energy to build muscle.`;
   $('xRate').innerHTML = Math.abs(perWeek) < 0.05 ? 'Steady'
     : `${diff < 0 ? '−' : '+'}${Math.abs(perWeek).toFixed(1)} ${lb ? 'lb' : 'kg'} / wk` +
       `<small>${(Math.abs(x.kgPerWeek) / input.kg * 100).toFixed(1)}% of bodyweight</small>`;
