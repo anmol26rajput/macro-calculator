@@ -5,28 +5,28 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Free Calorie &amp; Macro Calculator: TDEE, BMR &amp; BMI | liftsw.anmol</title>
 <meta name="description" content="Free calorie and macro calculator: your TDEE, BMR, daily calories, protein, carbs, fat and BMI for fat loss or muscle gain. kg or lb, no sign-up.">
-<link rel="canonical" href="https://anmol26rajput.github.io/macro-calculator/">
+<link rel="canonical" href="https://free-calculator-liftswanmol.vercel.app/">
 <meta name="robots" content="index, follow, max-image-preview:large">
 <meta name="author" content="Anmol Rajput">
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://anmol26rajput.github.io/macro-calculator/">
+<meta property="og:url" content="https://free-calculator-liftswanmol.vercel.app/">
 <meta property="og:site_name" content="liftsw.anmol">
 <meta property="og:title" content="Free Calorie &amp; Macro Calculator (TDEE, BMR, BMI)">
 <meta property="og:description" content="Daily calories, protein, carbs, fat, BMI and how long to reach your goal weight. Free, 30 seconds, no sign-up.">
-<meta property="og:image" content="https://anmol26rajput.github.io/macro-calculator/og-image.png">
+<meta property="og:image" content="https://free-calculator-liftswanmol.vercel.app/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Free calorie and macro calculator by @liftsw.anmol">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Free Calorie &amp; Macro Calculator (TDEE, BMR, BMI)">
 <meta name="twitter:description" content="Daily calories, protein, carbs, fat, BMI and a goal-weight timeline. Free, no sign-up.">
-<meta name="twitter:image" content="https://anmol26rajput.github.io/macro-calculator/og-image.png">
+<meta name="twitter:image" content="https://free-calculator-liftswanmol.vercel.app/og-image.png">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "WebApplication",
   "name": "Free Calorie & Macro Calculator",
-  "url": "https://anmol26rajput.github.io/macro-calculator/",
+  "url": "https://free-calculator-liftswanmol.vercel.app/",
   "description": "Free calorie, macro, TDEE, BMR and BMI calculator with a goal-weight timeline, for fat loss, maintenance, lean gain or bulking. Works in kg or lb.",
   "applicationCategory": "HealthApplication",
   "operatingSystem": "Any",
@@ -315,6 +315,8 @@ input:user-invalid { border-color: var(--bad); }
 
 /* ---------- Road to goal ---------- */
 .goalw { margin-bottom: 16px; }
+.goal-note { margin: 0 0 12px; color: var(--muted); font-size: .88rem; max-width: 52ch; text-wrap: pretty; }
+.goal-note b { color: var(--text); }
 .plan {
   margin: 0 0 14px; padding: 18px 16px 8px; border-radius: 20px; border: 1px solid var(--edge);
   background: linear-gradient(170deg, var(--raised), var(--surface));
@@ -521,6 +523,7 @@ main > :nth-child(2) { animation-delay: .08s; } main > :nth-child(3) { animation
 
     <fieldset class="step">
       <legend><span class="num">04</span>Your goal</legend>
+      <p class="goal-note">Want your maintenance calories? Put your current weight as your goal weight. Picking <b>Maintain</b> fills it in for you.</p>
       <div class="fields goalw">
         <label class="field" data-u="kg"><span class="lbl" data-err="35–250">Goal weight</span>
           <span class="box"><input type="number" name="goalKg" inputmode="decimal" min="35" max="250" step="any" required placeholder="75"><i>kg</i></span></label>
@@ -798,7 +801,8 @@ function renderPlan(input, r, lb) {
   $('gGoal').textContent = w(input.goalKg);
   const amount = w(Math.abs(plan.toGo)), verb = plan.dir === 'lose' ? 'lose' : 'gain';
   let main;
-  if (plan.dir === 'there') main = "You're already at your goal weight. Pick Maintain to hold it.";
+  if (plan.dir === 'there') main = input.goal === 'maintain' ? "You're at your goal weight. These are your maintenance calories."
+    : "You're already at your goal weight. Pick Maintain to hold it.";
   else if (!plan.matches) {
     main = `${amount} to ${verb}, but you picked ${names[input.goal]}. Pick ${plan.dir === 'lose' ? 'Fat loss' : 'Lean gain or Bulk'} to move toward it.`;
   } else if (plan.weeks === null) main = `${amount} to ${verb}. At these calories progress stalls before you get there; add steps or training to burn more.`;
@@ -836,6 +840,10 @@ function update(e) {
   const cm = ftin ? (f.ft.value * 12 + +f.inch.value) * IN : +f.cm.value;
   $('cmHint').textContent = ftin && f.ft.value && f.ft.checkValidity() && f.inch.checkValidity()
     ? `= ${Math.round(cm)} cm` : '';
+  // Maintain means "stay where I am": copy current weight into goal weight (and keep it synced while Maintain is picked).
+  const lbMode = f.wunit.value === 'lb', name = e && e.target.name;
+  if (f.goal.value === 'maintain' && (name === 'goal' || name === (lbMode ? 'lb' : 'kg')))
+    (lbMode ? f.goalLb : f.goalKg).value = (lbMode ? f.lb : f.kg).value;
   lockGoals();
   $('goalTag').textContent = names[f.goal.value];
   const ok = form.checkValidity();

@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://free-calculator-liftswanmol.vercel.app/sitemap.xml
