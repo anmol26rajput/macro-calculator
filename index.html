@@ -51,6 +51,9 @@ legend, .field > span { display: block; font-weight: 600; font-size: .95rem; mar
 .opt input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
 .fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
 .wide { grid-column: span 2; }
+.units { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.hint { margin: -4px 0 0; color: var(--muted); font-size: .9rem; }
+.hint:empty { display: none; }
 .field { display: block; }
 .field > span { font-size: .9rem; margin-bottom: 4px; }
 input[type=number] {
@@ -87,13 +90,22 @@ a { color: var(--accent); }
   <p class="lede">Calories and macros for fat loss without crash diets. Same approach I used to go 89 → 80 kg in 5 months with a desk job. Nothing you type leaves your phone.</p>
 
   <form id="calc" novalidate>
-    <fieldset>
-      <legend>Units</legend>
-      <div class="seg">
-        <label class="opt"><input type="radio" name="units" value="metric" checked><span>kg / cm</span></label>
-        <label class="opt"><input type="radio" name="units" value="imperial"><span>lb / ft-in</span></label>
-      </div>
-    </fieldset>
+    <div class="units">
+      <fieldset>
+        <legend>Weight in</legend>
+        <div class="seg">
+          <label class="opt"><input type="radio" name="wunit" value="kg" checked><span>kg</span></label>
+          <label class="opt"><input type="radio" name="wunit" value="lb"><span>lb</span></label>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>Height in</legend>
+        <div class="seg">
+          <label class="opt"><input type="radio" name="hunit" value="cm" checked><span>cm</span></label>
+          <label class="opt"><input type="radio" name="hunit" value="ftin"><span>ft + in</span></label>
+        </div>
+      </fieldset>
+    </div>
 
     <fieldset>
       <legend>Sex <small style="font-weight:400;color:var(--muted)">(the formula needs it)</small></legend>
@@ -106,16 +118,17 @@ a { color: var(--accent); }
     <div class="fields">
       <label class="field"><span>Age</span>
         <input type="number" name="age" inputmode="numeric" min="15" max="80" step="1" required autocomplete="off"></label>
-      <label class="field" data-u="metric"><span>Weight (kg)</span>
+      <label class="field" data-u="kg"><span>Weight (kg)</span>
         <input type="number" name="kg" inputmode="decimal" min="35" max="250" step="any" required></label>
-      <label class="field" data-u="imperial" hidden><span>Weight (lb)</span>
+      <label class="field" data-u="lb" hidden><span>Weight (lb)</span>
         <input type="number" name="lb" inputmode="decimal" min="77" max="550" step="any" required disabled></label>
-      <label class="field wide" data-u="metric"><span>Height (cm)</span>
+      <label class="field wide" data-u="cm"><span>Height (cm)</span>
         <input type="number" name="cm" inputmode="decimal" min="130" max="230" step="any" required></label>
-      <label class="field" data-u="imperial" hidden><span>Height (ft)</span>
+      <label class="field" data-u="ftin" hidden><span>Height (ft)</span>
         <input type="number" name="ft" inputmode="numeric" min="4" max="7" step="1" required disabled></label>
-      <label class="field" data-u="imperial" hidden><span>Height (in)</span>
+      <label class="field" data-u="ftin" hidden><span>Height (in)</span>
         <input type="number" name="inch" inputmode="decimal" min="0" max="11.9" step="any" placeholder="0" disabled></label>
+      <p class="hint wide" id="cmHint" data-u="ftin" hidden></p>
     </div>
 
     <fieldset>
@@ -189,31 +202,35 @@ const $ = id => document.getElementById(id);
 const LB = 0.45359237, IN = 2.54;
 const fmt = n => n.toLocaleString('en');
 
-function switchUnits(units) {
-  if (units === 'imperial') {
-    if (f.kg.value) f.lb.value = Math.round(f.kg.value / LB);
-    if (f.cm.value) { const t = Math.round(f.cm.value / IN); f.ft.value = Math.floor(t / 12); f.inch.value = t % 12; }
-  } else {
-    if (f.lb.value) f.kg.value = Math.round(f.lb.value * LB * 10) / 10;
-    if (f.ft.value) f.cm.value = Math.round((f.ft.value * 12 + +f.inch.value) * IN);
+// Carry the typed value over when a unit toggle flips, then show only the active unit's fields.
+function switchUnits(name) {
+  if (name === 'wunit' && f.wunit.value === 'lb' && f.kg.value) f.lb.value = Math.round(f.kg.value / LB);
+  if (name === 'wunit' && f.wunit.value === 'kg' && f.lb.value) f.kg.value = Math.round(f.lb.value * LB * 10) / 10;
+  if (name === 'hunit' && f.hunit.value === 'ftin' && f.cm.value) {
+    const t = Math.round(f.cm.value / IN); f.ft.value = Math.floor(t / 12); f.inch.value = t % 12;
   }
+  if (name === 'hunit' && f.hunit.value === 'cm' && f.ft.value) f.cm.value = Math.round((f.ft.value * 12 + +f.inch.value) * IN);
+  const units = [f.wunit.value, f.hunit.value];
   for (const el of form.querySelectorAll('[data-u]')) {
-    el.hidden = el.dataset.u !== units;
-    el.querySelector('input').disabled = el.hidden; // disabled inputs skip validation
+    el.hidden = !units.includes(el.dataset.u);
+    const input = el.querySelector('input');
+    if (input) input.disabled = el.hidden; // disabled inputs skip validation
   }
 }
 
 function update(e) {
-  if (e && e.target.name === 'units') switchUnits(e.target.value);
+  switchUnits(e && e.target.name);
+  const ftin = f.hunit.value === 'ftin';
+  const cm = ftin ? (f.ft.value * 12 + +f.inch.value) * IN : +f.cm.value;
+  $('cmHint').textContent = ftin && f.ft.value && f.ft.checkValidity() && f.inch.checkValidity()
+    ? `= ${Math.round(cm)} cm` : '';
   const ok = form.checkValidity();
   $('empty').hidden = ok;
   $('out').hidden = !ok;
   if (!ok) return;
-  const imp = f.units.value === 'imperial';
   const r = macros({
     sex: f.sex.value, age: +f.age.value, activity: +f.activity.value, goal: f.goal.value,
-    kg: imp ? f.lb.value * LB : +f.kg.value,
-    cm: imp ? (f.ft.value * 12 + +f.inch.value) * IN : +f.cm.value,
+    kg: f.wunit.value === 'lb' ? f.lb.value * LB : +f.kg.value, cm,
   });
   const pct = Math.round(Math.abs(1 - r.kcal / r.tdee) * 100);
   $('kcal').textContent = fmt(r.kcal);
@@ -225,6 +242,7 @@ function update(e) {
 
 form.addEventListener('input', update);
 form.addEventListener('submit', e => e.preventDefault());
+update(); // sync fields if the browser restored toggles on back/refresh
 </script>
 </body>
 </html>
