@@ -1,5 +1,7 @@
 # Macro Calculator
 
+[![Free Calorie & Macro Calculator](og-image.png)](https://free-calculator-liftswanmol.vercel.app/)
+
 A free calorie and macro calculator for lifters with desk jobs, by [@liftsw.anmol](https://www.instagram.com/liftsw.anmol/).
 
 **Live:** https://free-calculator-liftswanmol.vercel.app/
