@@ -279,6 +279,27 @@ input:user-invalid { border-color: var(--bad); }
 .ticks span { position: absolute; transform: translateX(-50%); }
 .bmi-facts { display: grid; gap: 2px; margin: 8px 0 4px; font-size: .92rem; }
 .bmi-facts b { font-weight: 700; }
+.gauge i.g { left: var(--goal, 0%); background: transparent; border: 2px dashed var(--text); box-shadow: none; width: 10px; margin-left: -5px; }
+
+/* ---------- Road to goal ---------- */
+.goalw { margin-bottom: 16px; }
+.plan {
+  margin: 0 0 14px; padding: 18px 16px 8px; border-radius: 20px; border: 1px solid var(--edge);
+  background: linear-gradient(170deg, var(--raised), var(--surface));
+  box-shadow: inset 0 1px 0 var(--hi), 0 2px 0 var(--edge-deep), 0 20px 30px -22px var(--shadow);
+}
+.plan h3 { margin: 0 0 12px; font-size: 1.05rem; }
+.trip { display: flex; align-items: center; gap: 12px; }
+.trip > span { display: flex; flex-direction: column; }
+.trip b { font-weight: 800; font-stretch: 70%; font-size: 2.2rem; line-height: 1; font-variant-numeric: tabular-nums; }
+.trip small { color: var(--muted); font-size: .8rem; }
+.trip #gGoal { color: var(--accent); }
+.trip-line { flex: 1; height: 2px; margin-bottom: 1.1rem; background: repeating-linear-gradient(90deg, var(--muted) 0 6px, transparent 6px 12px); position: relative; }
+.trip-line::after { content: ""; position: absolute; right: -2px; top: -4px; border: 5px solid transparent; border-left: 7px solid var(--muted); border-right: 0; }
+.plan-main { margin: 14px 0 6px; font-weight: 700; font-size: 1.05rem; text-wrap: balance; }
+.plan-list { margin: 0; padding-left: 1.1rem; color: var(--muted); font-size: .9rem; }
+.plan-list li { margin-bottom: 4px; }
+.plan-list li:empty { display: none; }
 
 .goals { margin-top: 26px; }
 .goals h3 { margin: 0 0 8px; font-size: 1.05rem; }
@@ -461,10 +482,18 @@ main > :nth-child(2) { animation-delay: .08s; } main > :nth-child(3) { animation
 
     <fieldset class="step">
       <legend><span class="num">04</span>Your goal</legend>
-      <div class="stack">
+      <div class="fields goalw">
+        <label class="field" data-u="kg"><span class="lbl" data-err="35–250">Goal weight <small>(optional)</small></span>
+          <span class="box"><input type="number" name="goalKg" inputmode="decimal" min="35" max="250" step="any" placeholder="75"><i>kg</i></span></label>
+        <label class="field" data-u="lb" hidden><span class="lbl" data-err="77–550">Goal weight <small>(optional)</small></span>
+          <span class="box"><input type="number" name="goalLb" inputmode="decimal" min="77" max="550" step="any" disabled placeholder="165"><i>lb</i></span></label>
+        <p class="hint wide" id="goalHint"></p>
+      </div>
+      <div class="stack acts">
         <label class="key"><input type="radio" name="goal" value="lose" checked><span>Fat loss<small>Moderate 20% deficit. Steady, not miserable.</small></span></label>
         <label class="key"><input type="radio" name="goal" value="maintain"><span>Maintain<small>Hold weight, keep getting stronger.</small></span></label>
-        <label class="key"><input type="radio" name="goal" value="gain"><span>Lean gain<small>Small 10% surplus. Muscle, not just weight.</small></span></label>
+        <label class="key"><input type="radio" name="goal" value="gain"><span>Lean gain<small>Small 10% surplus. Slow, steady muscle with little fat.</small></span></label>
+        <label class="key"><input type="radio" name="goal" value="bulk"><span>Bulk<small>15% surplus to build size and strength faster. Some fat comes with it.</small></span></label>
       </div>
     </fieldset>
     </div>
@@ -498,6 +527,14 @@ main > :nth-child(2) { animation-delay: .08s; } main > :nth-child(3) { animation
   <section class="more is-empty" id="more" aria-labelledby="bh">
     <h2 id="bh">The full breakdown</h2>
     <p>Everything else your stats tell us.</p>
+    <section class="plan" id="plan" aria-labelledby="planh" hidden>
+      <h3 id="planh">Road to your goal</h3>
+      <div class="trip"><span><b id="gNow"></b><small>now</small></span><i class="trip-line" aria-hidden="true"></i><span><b id="gGoal"></b><small>goal</small></span></div>
+      <p class="plan-main" id="gMain"></p>
+      <ul class="plan-list"><li id="gMaint"></li><li id="gTip"></li></ul>
+      <details class="tip explain"><summary>How is this worked out?</summary>
+        <p>We replay your plan week by week: each week your weight changes, your calories burned drop (or rise) a little, and the next week is worked out from there. That's why progress slows near the end. Real life wobbles, so treat the date as a rough guide and recalculate every 4–5 kg.</p></details>
+    </section>
     <div class="stats">
       <details class="tip"><summary>
           <span class="eb"><span><span class="v" id="xEat"></span><span class="k">kcal you eat</span></span><span class="vs">vs</span><span><span class="v" id="xBurn"></span><span class="k">kcal you burn</span></span></span>
@@ -533,9 +570,9 @@ main > :nth-child(2) { animation-delay: .08s; } main > :nth-child(3) { animation
         </fieldset>
       </div>
       <p class="bmi-now"><b id="bmiVal">—</b><span id="bmiCat"></span></p>
-      <div class="gauge" id="gauge" aria-hidden="true"><i></i></div>
+      <div class="gauge" id="gauge" aria-hidden="true"><i></i><i class="g" id="gaugeGoal" hidden></i></div>
       <div class="ticks" id="ticks" aria-hidden="true"></div>
-      <p class="bmi-facts"><span>Healthy weight for your height: <b id="bmiRange">—</b></span><span id="bmiGap"></span></p>
+      <p class="bmi-facts"><span>Healthy weight for your height: <b id="bmiRange">—</b></span><span id="bmiGap"></span><span id="bmiGoal"></span></p>
       <details class="tip explain"><summary>What does BMI mean?</summary>
         <p>Your weight (kg) divided by your height (m) squared. It's a quick screen for health risk, not a measure of body fat, so muscular people often show "overweight" while being lean. South Asians tend to carry more fat at the same BMI, so risk starts lower (23 instead of 25). Switch to South Asian cut-offs if that's you.</p></details>
     </section>
@@ -555,7 +592,8 @@ main > :nth-child(2) { animation-delay: .08s; } main > :nth-child(3) { animation
     <ul>
       <li>BMR: Mifflin-St Jeor, the most accurate everyday formula.</li>
       <li>Activity: desk job + lifting 3–4x is honestly "lightly active" (×1.375). Many calculators bump gym-goers to ×1.55, which overestimates and stalls fat loss.</li>
-      <li>Fat loss: 20% under maintenance, never below your BMR or 1,500 / 1,200 kcal (men / women).</li>
+      <li>Fat loss: 20% under maintenance, never below your BMR or 1,500 / 1,200 kcal (men / women). Lean gain: 10% over. Bulk: 15% over.</li>
+      <li>Goal weight: if it's below your current weight, protein and fat are based on your goal weight, since that's the body you're building toward. The timeline replays your plan week by week as your weight changes.</li>
       <li>Protein: 2.0 g/kg when cutting, 1.8 g/kg otherwise. Fat: 0.8 g/kg, at least 20% of calories. Carbs: the rest. Above a BMI of 30, grams are based on a BMI-30 weight so targets stay realistic.</li>
       <li>Expected rate: ~7,700 kcal ≈ 1 kg of body fat. Aim for 0.5–1% of bodyweight a week on a cut. Week-one drops are mostly water.</li>
       <li>BMI uses WHO cut-offs (25 / 30). For South Asians, risk starts lower (23 / 27.5). Lifters with muscle can read "overweight" while lean.</li>
@@ -571,25 +609,26 @@ main > :nth-child(2) { animation-delay: .08s; } main > :nth-child(3) { animation
 
 <script id="macros">
 // Pure macro math, metric in. Verified by check.mjs.
-function macros({ sex, age, cm, kg, activity, goal }) {
+function macros({ sex, age, cm, kg, activity, goal, goalKg }) {
   const bmr = 10 * kg + 6.25 * cm - 5 * age + (sex === 'male' ? 5 : -161); // Mifflin-St Jeor
   const tdee = bmr * activity;
-  let kcal = tdee * { lose: 0.8, maintain: 1, gain: 1.1 }[goal];
+  let kcal = tdee * { lose: 0.8, maintain: 1, gain: 1.1, bulk: 1.15 }[goal];
   if (goal === 'lose') kcal = Math.min(tdee, Math.max(kcal, bmr, sex === 'male' ? 1500 : 1200)); // no crash diets, never a surplus
   kcal = Math.floor(kcal / 10) * 10; // round down: a cut never rounds into a surplus
-  const refKg = refWeight(kg, cm);
+  const refKg = refWeight(kg, cm, goalKg);
   const protein = Math.round(refKg * (goal === 'lose' ? 2.0 : 1.8));
   const fat = Math.round(Math.max(0.8 * refKg, 0.2 * kcal / 9));
   const carbs = Math.max(0, Math.round((kcal - protein * 4 - fat * 9) / 4));
   return { bmr: Math.round(bmr), tdee: Math.round(tdee), kcal, protein, fat, carbs };
 }
 
-// Cap at BMI-30 weight so 140 kg doesn't mean 280 g protein.
-const refWeight = (kg, cm) => Math.min(kg, 30 * (cm / 100) ** 2);
+// Grams are based on the lighter of: current weight, goal weight, or BMI-30 weight (so 140 kg doesn't mean 280 g protein).
+const refWeight = (kg, cm, goalKg) => Math.min(kg, goalKg || kg, 30 * (cm / 100) ** 2);
+const r1 = n => Math.round(n * 10) / 10;
 
 // Everything else derived from the same inputs and the macros() result.
-function extras({ kg, cm }, r) {
-  const b = bmiInfo(kg, cm), refKg = refWeight(kg, cm);
+function extras({ kg, cm, goalKg }, r) {
+  const b = bmiInfo(kg, cm), refKg = refWeight(kg, cm, goalKg);
   return {
     bmi: b.bmi,
     bmiClass: b.category,
@@ -604,15 +643,35 @@ function extras({ kg, cm }, r) {
 // BMI cut-offs: [underweight below, overweight from, obese from]. South Asian risk starts lower.
 const BMI_CUTS = { who: [18.5, 25, 30], asian: [18.5, 23, 27.5] };
 function bmiInfo(kg, cm, scale = 'who') {
-  const m2 = (cm / 100) ** 2, bmi = kg / m2, cuts = BMI_CUTS[scale], [under, over, obese] = cuts;
+  const m2 = (cm / 100) ** 2, bmi = r1(kg / m2), cuts = BMI_CUTS[scale], [under, over, obese] = cuts; // category from the shown (rounded) value
   const lo = under * m2, hi = (over - 0.1) * m2; // healthy weight range for this height
-  const r1 = n => Math.round(n * 10) / 10;
   return {
-    bmi: r1(bmi),
+    bmi,
     category: bmi < under ? 'Underweight' : bmi < over ? 'Healthy range' : bmi < obese ? 'Overweight' : 'Obese',
     healthyKg: [r1(lo), r1(hi)],
     kgOff: r1(kg > hi ? kg - hi : kg < lo ? kg - lo : 0), // + above the range, - below
     cuts,
+  };
+}
+
+// Road to the goal weight: replay the plan week by week, re-working calories as weight changes.
+function goalPlan(input) {
+  const { kg, goalKg, goal } = input;
+  if (!goalKg) return null;
+  const toGo = goalKg - kg, dir = Math.abs(toGo) < 0.5 ? 'there' : toGo < 0 ? 'lose' : 'gain';
+  const matches = dir === 'there' || (dir === 'lose' ? goal === 'lose' : goal === 'gain' || goal === 'bulk');
+  let w = kg, weeks = 0;
+  while (matches && dir !== 'there' && weeks < 520 && (dir === 'lose' ? w > goalKg : w < goalKg)) {
+    const r = macros({ ...input, kg: w });
+    const step = (r.kcal - r.tdee) * 7 / 7700;
+    if (dir === 'lose' ? step > -0.01 : step < 0.01) break; // calorie floor reached: no real deficit left
+    w += step; weeks++;
+  }
+  const reached = dir === 'lose' ? w <= goalKg : w >= goalKg;
+  return {
+    toGo: r1(toGo), dir, matches,
+    weeks: matches && dir !== 'there' && reached ? weeks : null,
+    tdeeAtGoal: macros({ ...input, kg: goalKg, goal: 'maintain' }).tdee,
   };
 }
 </script>
@@ -622,12 +681,14 @@ const f = form.elements;
 const $ = id => document.getElementById(id);
 const LB = 0.45359237, IN = 2.54;
 const fmt = n => n.toLocaleString('en');
-const names = { lose: 'Fat loss', maintain: 'Maintain', gain: 'Lean gain' };
+const names = { lose: 'Fat loss', maintain: 'Maintain', gain: 'Lean gain', bulk: 'Bulk' };
 
 // Carry the typed value over when a unit toggle flips, then show only the active unit's fields.
 function switchUnits(name) {
   if (name === 'wunit' && f.wunit.value === 'lb' && f.kg.value) f.lb.value = Math.round(f.kg.value / LB);
   if (name === 'wunit' && f.wunit.value === 'kg' && f.lb.value) f.kg.value = Math.round(f.lb.value * LB * 10) / 10;
+  if (name === 'wunit' && f.wunit.value === 'lb' && f.goalKg.value) f.goalLb.value = Math.round(f.goalKg.value / LB);
+  if (name === 'wunit' && f.wunit.value === 'kg' && f.goalLb.value) f.goalKg.value = Math.round(f.goalLb.value * LB * 10) / 10;
   if (name === 'hunit' && f.hunit.value === 'ftin' && f.cm.value) {
     const t = Math.round(f.cm.value / IN); f.ft.value = Math.floor(t / 12); f.inch.value = t % 12;
   }
@@ -640,8 +701,8 @@ function switchUnits(name) {
   }
 }
 
-function renderBmi(kg, cm, lb) {
-  const b = bmiInfo(kg, cm, document.querySelector('[name=bmiScale]:checked').value);
+function renderBmi(kg, cm, lb, goalKg) {
+  const scale = document.querySelector('[name=bmiScale]:checked').value, b = bmiInfo(kg, cm, scale);
   const pos = v => Math.min(100, Math.max(0, (v - 15) / 25 * 100)); // gauge spans BMI 15-40
   const w = v => lb ? Math.round(v / LB) : v, unit = lb ? 'lb' : 'kg';
   const g = $('gauge');
@@ -653,6 +714,35 @@ function renderBmi(kg, cm, lb) {
   $('bmiRange').textContent = `${w(b.healthyKg[0])}–${w(b.healthyKg[1])} ${unit}`;
   $('bmiGap').textContent = b.kgOff > 0 ? `You're ${w(b.kgOff)} ${unit} above it.`
     : b.kgOff < 0 ? `You're ${w(-b.kgOff)} ${unit} below it.` : "You're inside it.";
+  const gb = goalKg && bmiInfo(goalKg, cm, scale);
+  $('gaugeGoal').hidden = !gb;
+  if (gb) g.style.setProperty('--goal', `${pos(gb.bmi)}%`);
+  $('bmiGoal').textContent = gb ? `At your goal weight: BMI ${gb.bmi} (${gb.category.toLowerCase()}), dashed marker.` : '';
+}
+
+function renderPlan(input, r, lb) {
+  const plan = goalPlan(input);
+  $('plan').hidden = !plan;
+  $('goalHint').textContent = '';
+  if (!plan) return;
+  const w = v => lb ? `${Math.round(v / LB)} lb` : `${r1(v)} kg`;
+  $('gNow').textContent = w(input.kg);
+  $('gGoal').textContent = w(input.goalKg);
+  const amount = w(Math.abs(plan.toGo)), verb = plan.dir === 'lose' ? 'lose' : 'gain';
+  let main;
+  if (plan.dir === 'there') main = "You're already at your goal weight. Pick Maintain to hold it.";
+  else if (!plan.matches) {
+    main = `${amount} to ${verb}, but you picked ${names[input.goal]}. Pick ${plan.dir === 'lose' ? 'Fat loss' : 'Lean gain or Bulk'} to move toward it.`;
+    $('goalHint').textContent = main;
+  } else if (plan.weeks === null) main = `${amount} to ${verb}. At these calories progress stalls before you get there; add steps or training to burn more.`;
+  else {
+    const when = new Date(Date.now() + plan.weeks * 7 * 864e5).toLocaleDateString('en', { month: 'long', year: 'numeric' });
+    const span = plan.weeks < 9 ? `${plan.weeks} weeks` : `${Math.round(plan.weeks / 4.35)} months`;
+    main = `${amount} to ${verb} · about ${span} · around ${when}`;
+  }
+  $('gMain').textContent = main;
+  $('gMaint').textContent = plan.dir === 'there' ? '' : `At ${w(input.goalKg)} you'll burn about ${fmt(plan.tdeeAtGoal)} kcal a day, so your calories will need to move as you go.`;
+  $('gTip').textContent = plan.matches && plan.dir !== 'there' ? 'Come back and recalculate every 4–5 kg.' : '';
 }
 
 // Show the floating summary only while the results are still further down the page.
@@ -673,6 +763,8 @@ function update(e) {
     for (const id of ['xEat', 'xBurn', 'xTdee', 'xBmr', 'xRate', 'xPr', 'xPm', 'xFib', 'xWater', 'xWeek', 'bmiVal', 'bmiRange']) $(id).textContent = '—';
     $('xPrNote').textContent = '1.6–2.2 g per kg';
     $('xGap').textContent = '';
+    $('plan').hidden = true;
+    $('goalHint').textContent = '';
     $('bmiCat').textContent = $('bmiGap').textContent = '';
     $('sr').textContent = '';
     return peek();
@@ -681,6 +773,7 @@ function update(e) {
   const input = {
     sex: f.sex.value, age: +f.age.value, activity: +f.activity.value, goal: f.goal.value,
     kg: lb ? f.lb.value * LB : +f.kg.value, cm,
+    goalKg: lb ? (f.goalLb.value ? f.goalLb.value * LB : null) : (f.goalKg.value ? +f.goalKg.value : null),
   };
   const r = macros(input), x = extras(input, r);
   const pct = Math.round(Math.abs(1 - r.kcal / r.tdee) * 100);
@@ -719,7 +812,8 @@ function update(e) {
   $('xFib').textContent = `${x.fibre} g`;
   $('xWater').textContent = `${x.waterL} L`;
   $('xWeek').textContent = `${fmt(r.kcal * 7)} kcal`;
-  renderBmi(input.kg, cm, lb);
+  renderBmi(input.kg, cm, lb, input.goalKg);
+  renderPlan(input, r, lb);
 
   $('goals').innerHTML = Object.keys(names).map(goal => {
     const g = macros({ ...input, goal });

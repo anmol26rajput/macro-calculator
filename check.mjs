@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 
 const html = readFileSync(new URL('./index.html', import.meta.url), 'utf8');
 const src = html.match(/<script id="macros">([\s\S]*?)<\/script>/)[1];
-const { macros, extras, bmiInfo } = new Function(`${src}; return { macros, extras, bmiInfo };`)();
+const { macros, extras, bmiInfo, goalPlan } = new Function(`${src}; return { macros, extras, bmiInfo, goalPlan };`)();
 
 // Hand-worked: male 30y 178cm 89kg, desk job + lifts, fat loss.
 // BMR 1857.5 -> x1.375 = 2554 -> -20% = 2043 -> 2040 kcal; protein 2.0*89; fat 0.8*89; carbs = rest.
@@ -33,6 +33,29 @@ assert.deepEqual(bmiInfo(89, 178, 'asian'), { bmi: 28.1, category: 'Obese', heal
 assert.equal(bmiInfo(70, 178).kgOff, 0);       // 22.1: inside the range
 assert.equal(bmiInfo(55, 178).kgOff, -3.6);    // below: 55 - 58.6
 assert.equal(bmiInfo(70, 178, 'asian').category, 'Healthy range');
+assert.equal(bmiInfo(95, 178).category, 'Obese');   // 29.98 shows as 30.0, so it must read Obese, not Overweight
+
+// Goal weight below current: protein and fat follow the goal weight (2.0 x 80 = 160 g, 0.8 x 80 = 64 g).
+const cut80 = { ...me, goalKg: 80 };
+assert.equal(macros(cut80).protein, 160);
+assert.equal(macros(cut80).fat, 64);
+assert.equal(macros(cut80).kcal, 2040);                        // calories don't change, only the gram split
+assert.deepEqual(extras(cut80, macros(cut80)).proteinRange, [128, 176]);
+assert.equal(macros({ ...me, goal: 'gain', goalKg: 95 }).protein, 160); // gaining: still current weight (1.8 x 89)
+
+// Bulk = 15% surplus: 2554 x 1.15 = 2937 -> 2930.
+assert.equal(macros({ ...me, goal: 'bulk' }).kcal, 2930);
+
+// Road to goal: 9 kg at ~0.47 kg/week that slows as weight drops -> roughly 19-24 weeks.
+const p80 = goalPlan(cut80);
+assert.ok(p80.matches && p80.dir === 'lose' && p80.weeks >= 19 && p80.weeks <= 24, JSON.stringify(p80));
+assert.equal(p80.toGo, -9);
+assert.equal(p80.tdeeAtGoal, macros({ ...me, kg: 80, goal: 'maintain' }).tdee);
+assert.equal(goalPlan({ ...me, goal: 'gain', goalKg: 80 }).matches, false);   // picked gain, goal is below
+assert.equal(goalPlan({ ...me, goalKg: 89.2 }).dir, 'there');
+assert.equal(goalPlan(me), null);                                             // no goal weight, no plan
+const lean = goalPlan({ ...me, goal: 'gain', goalKg: 93 }), bulk = goalPlan({ ...me, goal: 'bulk', goalKg: 93 });
+assert.ok(bulk.weeks < lean.weeks, `bulk ${bulk.weeks} vs lean ${lean.weeks}`);   // bulk gets there faster
 
 // Invariants across a sweep of realistic inputs.
 let n = 0;
@@ -41,7 +64,7 @@ for (const sex of ['male', 'female'])
     for (const cm of [150, 165, 180, 195])
       for (const age of [18, 35, 60])
         for (const activity of [1.2, 1.375, 1.55, 1.725])
-          for (const goal of ['lose', 'maintain', 'gain']) {
+          for (const goal of ['lose', 'maintain', 'gain', 'bulk']) {
             const r = macros({ sex, age, cm, kg, activity, goal }), at = JSON.stringify({ sex, kg, cm, age, activity, goal, r });
             assert.ok(r.carbs > 0, at);
             assert.ok(Math.abs(r.protein * 4 + r.carbs * 4 + r.fat * 9 - r.kcal) <= 6, at);
@@ -53,7 +76,7 @@ for (const sex of ['male', 'female'])
             }
             const x = extras({ kg, cm }, r);
             assert.ok(x.bmi > 10 && x.bmi < 70 && x.proteinRange[0] <= r.protein && r.protein <= x.proteinRange[1], at);
-            assert.ok(goal === 'lose' ? x.kgPerWeek <= 0 : goal === 'gain' ? x.kgPerWeek > 0 : Math.abs(x.kgPerWeek) < 0.02, at);
+            assert.ok(goal === 'lose' ? x.kgPerWeek <= 0 : goal === 'gain' || goal === 'bulk' ? x.kgPerWeek > 0 : Math.abs(x.kgPerWeek) < 0.02, at);
             n++;
           }
 
