@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Free Macro Calculator · @liftsw.anmol</title>
+<meta name="description" content="Free calorie and macro calculator for desk-job lifters. Fat loss without crash diets. No sign-up.">
+<meta property="og:title" content="Free Macro Calculator for Desk-Job Lifters">
+<meta property="og:description" content="Calories and macros for fat loss, maintenance or lean gain. 30 seconds, no sign-up.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#f6f5f1" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#121413" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:,">
+<style>
+:root {
+  --bg: #f6f5f1; --card: #fff; --text: #1b1d1c; --muted: #5b625e; --line: #d9d7cf;
+  --accent: #2f6b4f; --accent-soft: #e4efe8; --bad: #b3261e;
+  --p: #2f6b4f; --c: #c08a2e; --f: #8a6fb0;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #121413; --card: #1b1e1c; --text: #eceeed; --muted: #a0a8a3; --line: #2f3531;
+    --accent: #84cba5; --accent-soft: #1f2c25; --bad: #f2948c;
+    --p: #84cba5; --c: #e0b25e; --f: #b9a2dc;
+  }
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  margin: 0; background: var(--bg); color: var(--text);
+  font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-text-size-adjust: 100%;
+}
+main { max-width: 34rem; margin: 0 auto; padding: 28px 16px 24px; }
+.kicker { margin: 0 0 6px; font-size: .8rem; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); font-weight: 600; }
+h1 { font-size: 1.65rem; line-height: 1.2; margin: 0 0 8px; letter-spacing: -.01em; }
+h2 { font-size: 1.05rem; margin: 0 0 10px; }
+.lede { color: var(--muted); margin: 0 0 24px; }
+fieldset { border: 0; padding: 0; margin: 0 0 20px; min-width: 0; }
+legend, .field > span { display: block; font-weight: 600; font-size: .95rem; margin-bottom: 8px; padding: 0; }
+.seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 8px; }
+.stack { display: grid; gap: 8px; }
+.opt { position: relative; display: block; }
+.opt input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.opt span {
+  display: block; height: 100%; padding: 10px 12px; cursor: pointer;
+  border: 1px solid var(--line); border-radius: 10px; background: var(--card);
+}
+.opt small { display: block; color: var(--muted); font-size: .85rem; line-height: 1.4; }
+.opt input:checked + span { border-color: var(--accent); background: var(--accent-soft); box-shadow: inset 0 0 0 1px var(--accent); }
+.opt input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+.fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+.wide { grid-column: span 2; }
+.field { display: block; }
+.field > span { font-size: .9rem; margin-bottom: 4px; }
+input[type=number] {
+  width: 100%; font: inherit; padding: 10px 12px; color: var(--text);
+  border: 1px solid var(--line); border-radius: 10px; background: var(--card);
+}
+input[type=number]:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; border-color: var(--accent); }
+input:user-invalid { border-color: var(--bad); }
+.result { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px 16px; }
+.empty { color: var(--muted); margin: 0; }
+.kcal { margin: 0; font-size: 2.6rem; font-weight: 700; line-height: 1.1; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.kcal small { font-size: 1rem; font-weight: 500; color: var(--muted); letter-spacing: 0; }
+.sub { margin: 4px 0 14px; color: var(--muted); font-size: .9rem; }
+.bar { display: flex; height: 8px; border-radius: 4px; overflow: hidden; gap: 2px; margin-bottom: 14px; }
+.bar i:nth-child(1) { background: var(--p); } .bar i:nth-child(2) { background: var(--c); } .bar i:nth-child(3) { background: var(--f); }
+dl { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 0 0 14px; }
+dl div { border-top: 3px solid; padding-top: 6px; }
+dl div:nth-child(1) { border-color: var(--p); } dl div:nth-child(2) { border-color: var(--c); } dl div:nth-child(3) { border-color: var(--f); }
+dt { font-size: .85rem; color: var(--muted); }
+dd { margin: 0; font-size: 1.4rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+dd small { font-size: .9rem; font-weight: 500; color: var(--muted); }
+.note { margin: 0; font-size: .92rem; padding-top: 12px; border-top: 1px solid var(--line); }
+details { margin-top: 18px; color: var(--muted); font-size: .9rem; }
+summary { cursor: pointer; color: var(--text); font-weight: 600; }
+details ul { padding-left: 1.1rem; margin: 8px 0 0; }
+footer { text-align: center; padding: 8px 16px 32px; font-size: .9rem; color: var(--muted); }
+a { color: var(--accent); }
+</style>
+</head>
+<body>
+<main>
+  <p class="kicker">Free tool · no sign-up</p>
+  <h1>Macro calculator for desk-job lifters</h1>
+  <p class="lede">Calories and macros for fat loss without crash diets. Same approach I used to go 89 → 80 kg in 5 months with a desk job. Nothing you type leaves your phone.</p>
+
+  <form id="calc" novalidate>
+    <fieldset>
+      <legend>Units</legend>
+      <div class="seg">
+        <label class="opt"><input type="radio" name="units" value="metric" checked><span>kg / cm</span></label>
+        <label class="opt"><input type="radio" name="units" value="imperial"><span>lb / ft-in</span></label>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Sex <small style="font-weight:400;color:var(--muted)">(the formula needs it)</small></legend>
+      <div class="seg">
+        <label class="opt"><input type="radio" name="sex" value="male" required><span>Male</span></label>
+        <label class="opt"><input type="radio" name="sex" value="female"><span>Female</span></label>
+      </div>
+    </fieldset>
+
+    <div class="fields">
+      <label class="field"><span>Age</span>
+        <input type="number" name="age" inputmode="numeric" min="15" max="80" step="1" required autocomplete="off"></label>
+      <label class="field" data-u="metric"><span>Weight (kg)</span>
+        <input type="number" name="kg" inputmode="decimal" min="35" max="250" step="any" required></label>
+      <label class="field" data-u="imperial" hidden><span>Weight (lb)</span>
+        <input type="number" name="lb" inputmode="decimal" min="77" max="550" step="any" required disabled></label>
+      <label class="field wide" data-u="metric"><span>Height (cm)</span>
+        <input type="number" name="cm" inputmode="decimal" min="130" max="230" step="any" required></label>
+      <label class="field" data-u="imperial" hidden><span>Height (ft)</span>
+        <input type="number" name="ft" inputmode="numeric" min="4" max="7" step="1" required disabled></label>
+      <label class="field" data-u="imperial" hidden><span>Height (in)</span>
+        <input type="number" name="inch" inputmode="decimal" min="0" max="11.9" step="any" placeholder="0" disabled></label>
+    </div>
+
+    <fieldset>
+      <legend>Activity</legend>
+      <div class="stack">
+        <label class="opt"><input type="radio" name="activity" value="1.2"><span>Mostly sitting<small>Desk job, no regular training, under ~5k steps a day.</small></span></label>
+        <label class="opt"><input type="radio" name="activity" value="1.375" checked><span>Desk job + lifts 3–4x/week<small>Office job, gym 3–4 times a week, around 5–8k steps. Most people reading this.</small></span></label>
+        <label class="opt"><input type="radio" name="activity" value="1.55"><span>Active<small>Lift 4–5x a week and 10k+ steps daily, or on your feet at work.</small></span></label>
+        <label class="opt"><input type="radio" name="activity" value="1.725"><span>Very active<small>Physical job, or hard training 6–7 days a week.</small></span></label>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Goal</legend>
+      <div class="stack">
+        <label class="opt"><input type="radio" name="goal" value="lose" checked><span>Fat loss<small>Moderate 20% deficit. Steady, not miserable.</small></span></label>
+        <label class="opt"><input type="radio" name="goal" value="maintain"><span>Maintain<small>Hold weight, keep getting stronger.</small></span></label>
+        <label class="opt"><input type="radio" name="goal" value="gain"><span>Lean gain<small>Small 10% surplus. Muscle, not just weight.</small></span></label>
+      </div>
+    </fieldset>
+  </form>
+
+  <section class="result" aria-labelledby="rh" aria-live="polite">
+    <h2 id="rh">Your daily targets</h2>
+    <p class="empty" id="empty">Fill in sex, age, weight and height to see your numbers.</p>
+    <div id="out" hidden>
+      <p class="kcal"><span id="kcal"></span> <small>kcal / day</small></p>
+      <p class="sub" id="sub"></p>
+      <div class="bar" aria-hidden="true"><i id="bp"></i><i id="bc"></i><i id="bf"></i></div>
+      <dl>
+        <div><dt>Protein</dt><dd><span id="p"></span> <small>g</small></dd></div>
+        <div><dt>Carbs</dt><dd><span id="c"></span> <small>g</small></dd></div>
+        <div><dt>Fat</dt><dd><span id="f"></span> <small>g</small></dd></div>
+      </dl>
+      <p class="note"><strong>How to use:</strong> hit calories and protein every day, let carbs and fat flex, and only adjust by ~150 kcal if your weekly average weight hasn't moved in 2–3 weeks.</p>
+    </div>
+  </section>
+
+  <details>
+    <summary>How it's calculated</summary>
+    <ul>
+      <li>BMR: Mifflin-St Jeor, the most accurate everyday formula.</li>
+      <li>Activity: desk job + lifting 3–4x is honestly "lightly active" (×1.375). Many calculators bump gym-goers to ×1.55, which overestimates and stalls fat loss.</li>
+      <li>Fat loss: 20% under maintenance, never below your BMR or 1,500 / 1,200 kcal (men / women).</li>
+      <li>Protein: 2.0 g/kg when cutting, 1.8 g/kg otherwise. Fat: 0.8 g/kg, at least 20% of calories. Carbs: the rest. Above a BMI of 30, grams are based on a BMI-30 weight so targets stay realistic.</li>
+      <li>These are starting estimates, not medical advice. Your scale trend is the real test.</li>
+    </ul>
+  </details>
+</main>
+<footer>by <a href="https://www.instagram.com/liftsw.anmol/">@liftsw.anmol</a></footer>
+
+<script id="macros">
+// Pure macro math, metric in. Verified by check.mjs.
+function macros({ sex, age, cm, kg, activity, goal }) {
+  const bmr = 10 * kg + 6.25 * cm - 5 * age + (sex === 'male' ? 5 : -161); // Mifflin-St Jeor
+  const tdee = bmr * activity;
+  let kcal = tdee * { lose: 0.8, maintain: 1, gain: 1.1 }[goal];
+  if (goal === 'lose') kcal = Math.min(tdee, Math.max(kcal, bmr, sex === 'male' ? 1500 : 1200)); // no crash diets, never a surplus
+  kcal = Math.floor(kcal / 10) * 10; // round down: a cut never rounds into a surplus
+  const refKg = Math.min(kg, 30 * (cm / 100) ** 2); // cap at BMI-30 weight so 140 kg doesn't mean 280 g protein
+  const protein = Math.round(refKg * (goal === 'lose' ? 2.0 : 1.8));
+  const fat = Math.round(Math.max(0.8 * refKg, 0.2 * kcal / 9));
+  const carbs = Math.max(0, Math.round((kcal - protein * 4 - fat * 9) / 4));
+  return { bmr: Math.round(bmr), tdee: Math.round(tdee), kcal, protein, fat, carbs };
+}
+</script>
+<script>
+const form = document.getElementById('calc');
+const f = form.elements;
+const $ = id => document.getElementById(id);
+const LB = 0.45359237, IN = 2.54;
+const fmt = n => n.toLocaleString('en');
+
+function switchUnits(units) {
+  if (units === 'imperial') {
+    if (f.kg.value) f.lb.value = Math.round(f.kg.value / LB);
+    if (f.cm.value) { const t = Math.round(f.cm.value / IN); f.ft.value = Math.floor(t / 12); f.inch.value = t % 12; }
+  } else {
+    if (f.lb.value) f.kg.value = Math.round(f.lb.value * LB * 10) / 10;
+    if (f.ft.value) f.cm.value = Math.round((f.ft.value * 12 + +f.inch.value) * IN);
+  }
+  for (const el of form.querySelectorAll('[data-u]')) {
+    el.hidden = el.dataset.u !== units;
+    el.querySelector('input').disabled = el.hidden; // disabled inputs skip validation
+  }
+}
+
+function update(e) {
+  if (e && e.target.name === 'units') switchUnits(e.target.value);
+  const ok = form.checkValidity();
+  $('empty').hidden = ok;
+  $('out').hidden = !ok;
+  if (!ok) return;
+  const imp = f.units.value === 'imperial';
+  const r = macros({
+    sex: f.sex.value, age: +f.age.value, activity: +f.activity.value, goal: f.goal.value,
+    kg: imp ? f.lb.value * LB : +f.kg.value,
+    cm: imp ? (f.ft.value * 12 + +f.inch.value) * IN : +f.cm.value,
+  });
+  const pct = Math.round(Math.abs(1 - r.kcal / r.tdee) * 100);
+  $('kcal').textContent = fmt(r.kcal);
+  $('sub').textContent = `Maintenance ≈ ${fmt(r.tdee)} kcal` +
+    (pct ? ` · ${pct}% ${r.kcal < r.tdee ? 'deficit' : 'surplus'}` : '');
+  $('p').textContent = r.protein; $('c').textContent = r.carbs; $('f').textContent = r.fat;
+  $('bp').style.flex = r.protein * 4; $('bc').style.flex = r.carbs * 4; $('bf').style.flex = r.fat * 9;
+}
+
+form.addEventListener('input', update);
+form.addEventListener('submit', e => e.preventDefault());
+</script>
+</body>
+</html>
