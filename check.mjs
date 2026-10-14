@@ -43,6 +43,11 @@ assert.equal(macros(cut80).kcal, 2040);                        // calories don't
 assert.deepEqual(extras(cut80, macros(cut80)).proteinRange, [128, 176]);
 assert.equal(macros({ ...me, goal: 'gain', goalKg: 95 }).protein, 160); // gaining: still current weight (1.8 x 89)
 
+// Tight budget: 100y woman, 90 kg, sedentary, cutting -> 1,360 kcal. Protein 180 g + fat 72 g would be 1,368 kcal,
+// so fat drops 72 -> 48 g to leave 15% for carbs: 720 + 432 + 52*4 = 1,360.
+assert.deepEqual(macros({ sex: 'female', age: 100, cm: 180, kg: 90, activity: 1.2, goal: 'lose' }),
+  { bmr: 1364, tdee: 1637, kcal: 1360, protein: 180, fat: 48, carbs: 52 });
+
 // Bulk = 15% surplus: 2554 x 1.15 = 2937 -> 2930.
 assert.equal(macros({ ...me, goal: 'bulk' }).kcal, 2930);
 
@@ -62,11 +67,11 @@ let n = 0;
 for (const sex of ['male', 'female'])
   for (const kg of [45, 60, 75, 90, 110, 140])
     for (const cm of [150, 165, 180, 195])
-      for (const age of [18, 35, 60])
+      for (const age of [10, 18, 35, 60, 100])
         for (const activity of [1.2, 1.375, 1.55, 1.725])
           for (const goal of ['lose', 'maintain', 'gain', 'bulk']) {
             const r = macros({ sex, age, cm, kg, activity, goal }), at = JSON.stringify({ sex, kg, cm, age, activity, goal, r });
-            assert.ok(r.carbs > 0, at);
+            assert.ok(r.carbs * 4 >= r.kcal * 0.15 - 4, at);   // carbs always get at least ~15%
             assert.ok(Math.abs(r.protein * 4 + r.carbs * 4 + r.fat * 9 - r.kcal) <= 6, at);
             assert.ok(r.fat * 9 >= 0.2 * r.kcal - 9, at);
             assert.ok(r.protein >= 1.6 * Math.min(kg, 30 * (cm / 100) ** 2) - 1 && r.protein <= 2.2 * kg + 1, at);

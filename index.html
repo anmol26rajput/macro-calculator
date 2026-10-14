@@ -153,6 +153,7 @@ main { max-width: var(--wide); margin: 0 auto; padding: 0 var(--gutter); }
 }
 .key input:checked + span::after { background: var(--accent); box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 22%, transparent), 0 0 10px var(--glow); }
 .key input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 3px; }
+.key input:disabled + span { opacity: .38; cursor: not-allowed; transform: translateY(3px); box-shadow: inset 0 1px 0 var(--hi); filter: grayscale(1); }
 .seg .key span { text-align: center; padding: 11px 10px; }
 .seg .key span::after { display: none; }
 
@@ -492,8 +493,8 @@ main > :nth-child(2) { animation-delay: .08s; } main > :nth-child(3) { animation
         </div>
       </fieldset>
       <div class="fields">
-        <label class="field"><span class="lbl" data-err="15–80">Age</span>
-          <span class="box"><input type="number" name="age" inputmode="numeric" min="15" max="80" step="1" required autocomplete="off" placeholder="30"><i>yrs</i></span></label>
+        <label class="field"><span class="lbl" data-err="10–100">Age</span>
+          <span class="box"><input type="number" name="age" inputmode="numeric" min="10" max="100" step="1" required autocomplete="off" placeholder="30"><i>yrs</i></span></label>
         <label class="field" data-u="kg"><span class="lbl" data-err="35–250">Weight</span>
           <span class="box"><input type="number" name="kg" inputmode="decimal" min="35" max="250" step="any" required placeholder="80"><i>kg</i></span></label>
         <label class="field" data-u="lb" hidden><span class="lbl" data-err="77–550">Weight</span>
@@ -676,8 +677,16 @@ function macros({ sex, age, cm, kg, activity, goal, goalKg }) {
   if (goal === 'lose') kcal = Math.min(tdee, Math.max(kcal, bmr, sex === 'male' ? 1500 : 1200)); // no crash diets, never a surplus
   kcal = Math.floor(kcal / 10) * 10; // round down: a cut never rounds into a surplus
   const refKg = refWeight(kg, cm, goalKg);
-  const protein = Math.round(refKg * (goal === 'lose' ? 2.0 : 1.8));
-  const fat = Math.round(Math.max(0.8 * refKg, 0.2 * kcal / 9));
+  let protein = Math.round(refKg * (goal === 'lose' ? 2.0 : 1.8));
+  let fat = Math.round(Math.max(0.8 * refKg, 0.2 * kcal / 9));
+  // Tight budgets (e.g. very old + sedentary): keep at least 15% for carbs by trimming fat to its
+  // 20% floor first, then protein, so the grams never add up to more than the calories.
+  const over = protein * 4 + fat * 9 - kcal * 0.85;
+  if (over > 0) {
+    const fatCut = Math.min(fat - Math.round(0.2 * kcal / 9), Math.ceil(over / 9));
+    fat -= fatCut;
+    protein -= Math.max(0, Math.ceil((over - fatCut * 9) / 4));
+  }
   const carbs = Math.max(0, Math.round((kcal - protein * 4 - fat * 9) / 4));
   return { bmr: Math.round(bmr), tdee: Math.round(tdee), kcal, protein, fat, carbs };
 }
@@ -783,7 +792,6 @@ function renderBmi(kg, cm, lb, goalKg) {
 function renderPlan(input, r, lb) {
   const plan = goalPlan(input);
   $('plan').hidden = !plan;
-  $('goalHint').textContent = '';
   if (!plan) return;
   const w = v => lb ? `${Math.round(v / LB)} lb` : `${r1(v)} kg`;
   $('gNow').textContent = w(input.kg);
@@ -793,7 +801,6 @@ function renderPlan(input, r, lb) {
   if (plan.dir === 'there') main = "You're already at your goal weight. Pick Maintain to hold it.";
   else if (!plan.matches) {
     main = `${amount} to ${verb}, but you picked ${names[input.goal]}. Pick ${plan.dir === 'lose' ? 'Fat loss' : 'Lean gain or Bulk'} to move toward it.`;
-    $('goalHint').textContent = main;
   } else if (plan.weeks === null) main = `${amount} to ${verb}. At these calories progress stalls before you get there; add steps or training to burn more.`;
   else {
     const when = new Date(Date.now() + plan.weeks * 7 * 864e5).toLocaleDateString('en', { month: 'long', year: 'numeric' });
@@ -805,6 +812,21 @@ function renderPlan(input, r, lb) {
   $('gTip').textContent = plan.matches && plan.dir !== 'there' ? 'Come back and recalculate every 4–5 kg.' : '';
 }
 
+// A goal weight above you switches off Fat loss; below you switches off Lean gain and Bulk.
+function lockGoals() {
+  const lb = f.wunit.value === 'lb', now = lb ? f.lb : f.kg, goal = lb ? f.goalLb : f.goalKg;
+  const ready = now.value && goal.value && now.checkValidity() && goal.checkValidity();
+  const gap = ready ? (goal.value - now.value) * (lb ? LB : 1) : 0;       // kg
+  const dir = Math.abs(gap) < 0.5 ? '' : gap > 0 ? 'gain' : 'lose';
+  const off = { gain: ['lose'], lose: ['gain', 'bulk'] }[dir] || [];
+  for (const k of form.querySelectorAll('[name=goal]')) k.disabled = off.includes(k.value);
+  if (off.includes(f.goal.value)) form.querySelector(`[name=goal][value=${dir === 'gain' ? 'gain' : 'lose'}]`).checked = true;
+  const amount = lb ? `${Math.round(Math.abs(gap) / LB)} lb` : `${r1(Math.abs(gap))} kg`;
+  $('goalHint').textContent = !dir ? ''
+    : dir === 'gain' ? `Your goal is ${amount} above your current weight, so Fat loss is switched off.`
+    : `Your goal is ${amount} below your current weight, so Lean gain and Bulk are switched off.`;
+}
+
 // Show the floating summary only while the results are still further down the page.
 function peek() { $('peek').classList.toggle('show', !$('out').hidden && $('results').getBoundingClientRect().top > innerHeight * 0.8); }
 
@@ -814,6 +836,7 @@ function update(e) {
   const cm = ftin ? (f.ft.value * 12 + +f.inch.value) * IN : +f.cm.value;
   $('cmHint').textContent = ftin && f.ft.value && f.ft.checkValidity() && f.inch.checkValidity()
     ? `= ${Math.round(cm)} cm` : '';
+  lockGoals();
   $('goalTag').textContent = names[f.goal.value];
   const ok = form.checkValidity();
   $('empty').hidden = ok;
@@ -824,7 +847,6 @@ function update(e) {
     $('xPrNote').textContent = '1.6–2.2 g per kg';
     $('xGap').textContent = '';
     $('plan').hidden = true;
-    $('goalHint').textContent = '';
     $('bmiCat').textContent = $('bmiGap').textContent = '';
     $('sr').textContent = '';
     return peek();
@@ -840,7 +862,8 @@ function update(e) {
   $('kcal').textContent = fmt(r.kcal);
   $('sub').textContent = (pct ? `${pct}% ${r.kcal < r.tdee ? 'below' : 'above'} the` : 'About the') +
     ` ${fmt(r.tdee)}\u00a0kcal you burn a day` +
-    (input.goal === 'lose' && x.bmi < 18.5 ? '. Your BMI is under 18.5, so maintain or gain instead of cutting.' : '');
+    (input.goal === 'lose' && x.bmi < 18.5 ? '. Your BMI is under 18.5, so maintain or gain instead of cutting.' : '') +
+    (input.age < 18 ? ". Under 18 you're still growing and these formulas are built for adults, so check with a doctor before dieting." : '');
   const share = {};
   for (const [id, g, k] of [['p', r.protein, 4], ['c', r.carbs, 4], ['f', r.fat, 9]]) {
     share[id] = g * k / r.kcal * 100;
