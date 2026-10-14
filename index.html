@@ -2,208 +2,433 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Free TDEE &amp; Macro Calculator · @liftsw.anmol</title>
 <meta name="description" content="Free TDEE, BMR, calorie and macro calculator for desk-job lifters. Fat loss without crash diets. No sign-up.">
 <meta property="og:title" content="Free TDEE &amp; Macro Calculator for Desk-Job Lifters">
 <meta property="og:description" content="BMR, TDEE, calories, protein, carbs, fat, BMI and more. 30 seconds, no sign-up.">
 <meta name="color-scheme" content="light dark">
-<meta name="theme-color" content="#f6f5f1" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#121413" media="(prefers-color-scheme: dark)">
-<link rel="icon" href="data:,">
+<meta name="theme-color" content="#ece7df" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#12100e" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='15' fill='%23e05a2e'/%3E%3Ccircle cx='16' cy='16' r='6.5' fill='%2312100e'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&display=swap">
 <style>
+@property --a { syntax: '<percentage>'; inherits: false; initial-value: 0%; }
+@property --b { syntax: '<percentage>'; inherits: false; initial-value: 0%; }
+
 :root {
-  --bg: #f6f5f1; --card: #fff; --text: #1b1d1c; --muted: #5b625e; --line: #d9d7cf;
-  --accent: #2f6b4f; --accent-soft: #e4efe8; --bad: #b3261e;
-  --p: #2f6b4f; --c: #c08a2e; --f: #8a6fb0;
+  --bg: #ece7df; --surface: #f5f1ea; --raised: #fdfbf7; --sunk: #e2dbd0;
+  --text: #1d1915; --muted: #685f55; --line: #d5ccbf; --edge: #cdc3b4; --edge-deep: #b3a796;
+  --hi: rgba(255, 255, 255, .95); --shadow: rgba(84, 58, 32, .26); --shadow-in: rgba(84, 58, 32, .18);
+  --accent: #c2461b; --accent-soft: #f5dfd3; --glow: rgba(194, 70, 27, .45);
+  --p: var(--accent); --c: #cfab72; --f: #5a4d42; --bad: #b3261e;
+  --display: "Archivo", "Arial Narrow", system-ui, sans-serif;
+  --spring: cubic-bezier(.2, .8, .2, 1);
 }
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #121413; --card: #1b1e1c; --text: #eceeed; --muted: #a0a8a3; --line: #2f3531;
-    --accent: #84cba5; --accent-soft: #1f2c25; --bad: #f2948c;
-    --p: #84cba5; --c: #e0b25e; --f: #b9a2dc;
+    --bg: #12100e; --surface: #1a1714; --raised: #24201c; --sunk: #0d0b09;
+    --text: #f2ede6; --muted: #a3998d; --line: #2f2a25; --edge: #37312b; --edge-deep: #050404;
+    --hi: rgba(255, 255, 255, .07); --shadow: rgba(0, 0, 0, .6); --shadow-in: rgba(0, 0, 0, .55);
+    --accent: #f06a3e; --accent-soft: #3a2118; --glow: rgba(240, 106, 62, .55);
+    --c: #d8b983; --f: #8b7e71; --bad: #f2948c;
   }
 }
+
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
+html { scroll-behavior: smooth; }
 body {
-  margin: 0; background: var(--bg); color: var(--text);
-  font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  -webkit-text-size-adjust: 100%;
+  margin: 0; min-height: 100dvh; background: var(--bg); color: var(--text);
+  font: 400 16px/1.55 var(--display); -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
 }
-main { max-width: 34rem; margin: 0 auto; padding: 28px 16px 24px; }
-.kicker { margin: 0 0 6px; font-size: .8rem; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); font-weight: 600; }
-h1 { font-size: 1.65rem; line-height: 1.2; margin: 0 0 8px; letter-spacing: -.01em; }
-h2 { font-size: 1.05rem; margin: 0 0 10px; }
-.lede { color: var(--muted); margin: 0 0 24px; }
-fieldset { border: 0; padding: 0; margin: 0 0 20px; min-width: 0; }
-legend, .field > span { display: block; font-weight: 600; font-size: .95rem; margin-bottom: 8px; padding: 0; }
+/* Grain + one warm ambient light, behind everything. */
+body::before {
+  content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .4 0 0 0 0 .3 0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.1'/%3E%3C/svg%3E"),
+    radial-gradient(50rem 32rem at 105% -8%, color-mix(in oklab, var(--accent) 16%, transparent), transparent 70%);
+}
+a { color: var(--accent); text-underline-offset: 3px; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* ---------- Top bar + intro ---------- */
+.top {
+  max-width: 1120px; margin: 0 auto; padding: max(18px, env(safe-area-inset-top)) 16px 0;
+  display: flex; justify-content: space-between; align-items: center; font-size: .88rem;
+}
+.brand { display: inline-flex; align-items: center; gap: 8px; color: var(--text); text-decoration: none; font-weight: 600; }
+.brand svg { width: 22px; height: 22px; }
+.top small { color: var(--muted); }
+
+main { max-width: 1120px; margin: 0 auto; padding: 0 16px; }
+.intro { padding: 36px 0 30px; }
+.kicker { margin: 0 0 14px; color: var(--muted); font-size: .92rem; font-weight: 500; }
+.kicker b { color: var(--accent); font-weight: 600; }
+h1 {
+  margin: 0; font-weight: 800; font-stretch: 68%; text-transform: uppercase;
+  font-size: clamp(3rem, 15vw, 5.4rem); line-height: .86; letter-spacing: -.005em; text-wrap: balance;
+}
+h1 span { color: var(--accent); display: block; }
+.lede { margin: 18px 0 0; max-width: 34ch; color: var(--muted); font-size: 1.05rem; text-wrap: pretty; }
+
+/* ---------- Form: steps ---------- */
+.calc { padding-bottom: 12px; }
+.step { border: 0; margin: 0; padding: 22px 0 26px; min-width: 0; border-top: 1px dashed var(--line); }
+.step-h, .step > legend {
+  display: flex; align-items: baseline; gap: 10px; float: left; width: 100%;
+  margin: 0 0 14px; padding: 0; font-size: 1.15rem; font-weight: 700; letter-spacing: -.01em;
+}
+.step-h + *, .step > legend + * { clear: both; }
+.num { font-stretch: 70%; font-weight: 800; font-size: .95rem; color: var(--accent); letter-spacing: .02em; }
+.sub-fs { border: 0; margin: 0 0 16px; padding: 0; min-width: 0; }
+.sub-fs > legend, .lbl { display: block; padding: 0; margin: 0 0 7px; font-size: .86rem; font-weight: 600; color: var(--muted); }
+.lbl small, .sub-fs > legend small { font-weight: 400; }
+.field:has(input:user-invalid) .lbl::after { content: " · " attr(data-err); color: var(--bad); font-weight: 500; }
+
+.units { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.units .sub-fs { margin: 0; }
 .seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 8px; }
-.stack { display: grid; gap: 8px; }
-.opt { position: relative; display: block; }
-.opt input { position: absolute; opacity: 0; width: 1px; height: 1px; }
-.opt span {
-  display: block; height: 100%; padding: 10px 12px; cursor: pointer;
-  border: 1px solid var(--line); border-radius: 10px; background: var(--card);
+.stack { display: grid; gap: 10px; }
+
+/* Keycap options: raised, press down, small light turns on when selected. */
+.key { position: relative; display: block; }
+.key input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.key span {
+  position: relative; display: block; height: 100%; padding: 12px 34px 12px 14px; cursor: pointer;
+  font-weight: 600; border-radius: 12px; border: 1px solid var(--edge);
+  background: linear-gradient(180deg, var(--raised), var(--surface));
+  box-shadow: inset 0 1px 0 var(--hi), 0 3px 0 var(--edge-deep), 0 10px 18px -10px var(--shadow);
+  transition: transform .18s var(--spring), box-shadow .18s var(--spring), border-color .18s, background .18s;
+  user-select: none; -webkit-user-select: none;
 }
-.opt small { display: block; color: var(--muted); font-size: .85rem; line-height: 1.4; }
-.opt input:checked + span { border-color: var(--accent); background: var(--accent-soft); box-shadow: inset 0 0 0 1px var(--accent); }
-.opt input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
-.fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+.key span::after {
+  content: ""; position: absolute; top: 15px; right: 13px; width: 8px; height: 8px; border-radius: 50%;
+  background: var(--sunk); box-shadow: inset 0 1px 2px var(--shadow-in);
+  transition: background .2s, box-shadow .2s;
+}
+.key small { display: block; margin-top: 2px; color: var(--muted); font-weight: 400; font-size: .86rem; line-height: 1.4; }
+@media (hover: hover) { .key span:hover { border-color: var(--edge-deep); } }
+.key:active span { transform: translateY(3px); box-shadow: inset 0 1px 0 var(--hi), 0 0 0 var(--edge-deep), 0 2px 4px -2px var(--shadow); }
+.key input:checked + span {
+  transform: translateY(2px); border-color: var(--accent);
+  background: linear-gradient(180deg, color-mix(in oklab, var(--accent-soft) 70%, var(--raised)), var(--accent-soft));
+  box-shadow: inset 0 1px 0 var(--hi), 0 1px 0 var(--edge-deep), 0 4px 10px -6px var(--shadow);
+}
+.key input:checked + span::after { background: var(--accent); box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 22%, transparent), 0 0 10px var(--glow); }
+.key input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 3px; }
+.seg .key span { text-align: center; padding: 11px 10px; }
+.seg .key span::after { display: none; }
+
+/* Engraved number fields with unit inside. */
+.fields { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 .wide { grid-column: span 2; }
-.units { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.hint { margin: -4px 0 0; color: var(--muted); font-size: .9rem; }
-.hint:empty { display: none; }
 .field { display: block; }
-.field > span { font-size: .9rem; margin-bottom: 4px; }
+.box { position: relative; display: block; }
+.box i { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-style: normal; color: var(--muted); font-size: .9rem; pointer-events: none; }
 input[type=number] {
-  width: 100%; font: inherit; padding: 10px 12px; color: var(--text);
-  border: 1px solid var(--line); border-radius: 10px; background: var(--card);
+  width: 100%; padding: 12px 40px 12px 14px; color: var(--text);
+  font: 700 1.4rem/1.2 var(--display); font-stretch: 78%; font-variant-numeric: tabular-nums;
+  border: 1px solid var(--line); border-radius: 12px; background: var(--sunk);
+  box-shadow: inset 0 2px 5px var(--shadow-in), 0 1px 0 var(--hi);
+  transition: border-color .18s, box-shadow .18s; -moz-appearance: textfield; appearance: textfield;
 }
-input[type=number]:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; border-color: var(--accent); }
+input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+input::placeholder { color: var(--muted); opacity: .5; }
+input[type=number]:focus { outline: none; border-color: var(--accent); box-shadow: inset 0 2px 5px var(--shadow-in), 0 0 0 3px color-mix(in oklab, var(--accent) 25%, transparent); }
 input:user-invalid { border-color: var(--bad); }
-.result { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px 16px; }
-.empty { color: var(--muted); margin: 0; }
-.kcal { margin: 0; font-size: 2.6rem; font-weight: 700; line-height: 1.1; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
-.kcal small { font-size: 1rem; font-weight: 500; color: var(--muted); letter-spacing: 0; }
-.sub { margin: 4px 0 14px; color: var(--muted); font-size: .9rem; }
-.bar { display: flex; height: 8px; border-radius: 4px; overflow: hidden; gap: 2px; margin-bottom: 14px; }
-.bar i:nth-child(1) { background: var(--p); } .bar i:nth-child(2) { background: var(--c); } .bar i:nth-child(3) { background: var(--f); }
-dl { margin: 0; }
-dt { font-size: .85rem; color: var(--muted); }
-dd { margin: 0; font-variant-numeric: tabular-nums; }
-.macros { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 0 0 14px; }
-.macros div { border-top: 3px solid; padding-top: 6px; }
-.macros div:nth-child(1) { border-color: var(--p); } .macros div:nth-child(2) { border-color: var(--c); } .macros div:nth-child(3) { border-color: var(--f); }
-.macros dd { font-size: 1.4rem; font-weight: 700; line-height: 1.3; }
-.macros dd small { font-size: .9rem; font-weight: 500; color: var(--muted); }
-.macros .split { display: block; font-size: .8rem; font-weight: 400; }
-.more { margin-top: 14px; }
-.rows div { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); }
-.rows dt { color: var(--text); font-size: .95rem; }
-.rows dt small { display: block; color: var(--muted); font-size: .8rem; }
-.rows dd { font-weight: 600; text-align: right; white-space: nowrap; }
-.rows dd small { display: block; color: var(--muted); font-size: .8rem; font-weight: 400; }
-h3 { font-size: .95rem; margin: 18px 0 6px; }
-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: .92rem; }
-th, td { padding: 8px 4px; text-align: right; border-bottom: 1px solid var(--line); }
-th:first-child, td:first-child { text-align: left; }
-th { font-size: .8rem; font-weight: 500; color: var(--muted); }
-tr.on td { font-weight: 700; }
-tr.on td:first-child { color: var(--accent); }
-.note { margin: 0; font-size: .92rem; padding-top: 12px; border-top: 1px solid var(--line); }
-details { margin-top: 18px; color: var(--muted); font-size: .9rem; }
-summary { cursor: pointer; color: var(--text); font-weight: 600; }
-details ul { padding-left: 1.1rem; margin: 8px 0 0; }
-footer { text-align: center; padding: 8px 16px 32px; font-size: .9rem; color: var(--muted); }
-a { color: var(--accent); }
+.hint { margin: -4px 0 0; color: var(--accent); font-size: .9rem; font-weight: 600; }
+.hint:empty { display: none; }
+
+/* ---------- Results board ---------- */
+.board { padding: 8px 0 0; scroll-margin-top: 16px; }
+.board-inner {
+  position: relative; padding: 20px 18px 18px; border-radius: 26px;
+  background: linear-gradient(170deg, var(--raised), var(--surface) 60%);
+  border: 1px solid var(--edge);
+  box-shadow: inset 0 1px 0 var(--hi), 0 2px 0 var(--edge-deep), 0 40px 70px -40px var(--shadow);
+  transform: perspective(1100px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transform-style: preserve-3d; transition: transform .5s var(--spring);
+}
+.board-inner::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: radial-gradient(28rem circle at var(--mx, 30%) var(--my, -10%), rgba(255, 255, 255, .1), transparent 45%);
+}
+.board-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.board h2 { margin: 0; font-size: 1.15rem; letter-spacing: -.01em; }
+.tag { font-size: .8rem; font-weight: 600; padding: 3px 9px; border-radius: 7px; color: var(--accent); background: var(--accent-soft); }
+
+.empty { text-align: center; padding: 14px 0 6px; color: var(--muted); }
+.empty p { margin: 0; text-wrap: balance; }
+.ghost {
+  position: relative; width: min(52vw, 190px); aspect-ratio: 1; margin: 6px auto 18px; border-radius: 50%;
+  background: repeating-conic-gradient(var(--sunk) 0 9deg, transparent 9deg 18deg);
+  box-shadow: inset 0 3px 10px var(--shadow-in), 0 1px 0 var(--hi);
+  animation: idle 40s linear infinite;
+}
+.ghost::after { content: ""; position: absolute; inset: 30%; border-radius: 50%; background: var(--surface); box-shadow: 0 4px 10px -4px var(--shadow), inset 0 1px 0 var(--hi); }
+@keyframes idle { to { transform: rotate(1turn); } }
+
+/* The plate: macro split as a bumper plate, calories on the hub. */
+.plate-wrap { display: grid; place-items: center; padding: 22px 0 18px; transform: translateZ(40px); }
+.plate {
+  position: relative; width: min(66vw, 250px); aspect-ratio: 1; border-radius: 50%;
+  background: conic-gradient(var(--p) 0 var(--a), var(--c) 0 var(--b), var(--f) 0);
+  box-shadow:
+    inset 0 3px 2px rgba(255, 255, 255, .28), inset 0 -8px 14px rgba(0, 0, 0, .3),
+    0 9px 0 -1px color-mix(in oklab, var(--f) 70%, #000),
+    0 28px 36px -14px var(--shadow);
+  transition: --a .7s var(--spring), --b .7s var(--spring);
+  animation: load .9s var(--spring) both;
+}
+.plate::before {
+  content: ""; position: absolute; inset: 0; border-radius: 50%;
+  background:
+    radial-gradient(circle at 32% 22%, rgba(255, 255, 255, .32), transparent 42%),
+    repeating-radial-gradient(circle, transparent 0 7px, rgba(0, 0, 0, .07) 7px 8px);
+}
+.hub {
+  position: absolute; inset: 21%; border-radius: 50%; display: grid; place-content: center; text-align: center;
+  background: radial-gradient(circle at 38% 28%, var(--raised), var(--surface) 70%);
+  box-shadow: 0 8px 16px -6px rgba(0, 0, 0, .45), inset 0 1px 0 var(--hi), inset 0 -3px 6px var(--shadow-in);
+}
+.hub b { font-weight: 800; font-stretch: 70%; font-size: clamp(2.3rem, 11vw, 2.9rem); line-height: .9; font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+.hub small { color: var(--muted); font-size: .78rem; font-weight: 500; margin-top: 4px; }
+@keyframes load { from { transform: rotate(-140deg) scale(.82); opacity: 0; } }
+
+.sub { margin: 0; text-align: center; color: var(--muted); font-size: .92rem; text-wrap: balance; }
+.macros { margin: 16px 0 14px; }
+.macros div {
+  display: grid; grid-template-columns: 12px 1fr auto; align-items: center; gap: 12px;
+  padding: 11px 0; border-bottom: 1px dashed var(--line);
+}
+.macros div::before { content: ""; width: 12px; height: 12px; border-radius: 4px; background: var(--dot); box-shadow: inset 0 -2px 0 rgba(0, 0, 0, .22); }
+.macros div:nth-child(1) { --dot: var(--p); } .macros div:nth-child(2) { --dot: var(--c); } .macros div:nth-child(3) { --dot: var(--f); }
+.macros dt { font-weight: 600; }
+.macros dd { margin: 0; text-align: right; }
+.macros dd b { font-weight: 800; font-stretch: 72%; font-size: 1.7rem; line-height: 1; font-variant-numeric: tabular-nums; }
+.macros dd .g { color: var(--muted); font-size: .9rem; margin-left: 2px; }
+.macros dd small { display: block; color: var(--muted); font-size: .76rem; margin-top: 2px; }
+.note { margin: 0; font-size: .92rem; text-wrap: pretty; }
+.note b { color: var(--accent); }
+
+/* ---------- Breakdown ---------- */
+.more { padding: 44px 0 0; }
+.more > h2 { margin: 0 0 4px; font-size: clamp(1.9rem, 8vw, 2.6rem); font-weight: 800; font-stretch: 70%; text-transform: uppercase; line-height: 1; }
+.more > p { margin: 0 0 18px; color: var(--muted); }
+.stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 0; }
+.stats div {
+  display: flex; flex-direction: column-reverse; justify-content: flex-end; gap: 4px;
+  padding: 14px; border-radius: 16px; background: var(--sunk);
+  box-shadow: inset 0 2px 6px var(--shadow-in), 0 1px 0 var(--hi);
+}
+.stats div:first-child { grid-column: span 2; background: linear-gradient(170deg, var(--raised), var(--surface)); box-shadow: inset 0 1px 0 var(--hi), 0 2px 0 var(--edge-deep), 0 20px 30px -22px var(--shadow); border: 1px solid var(--edge); }
+.stats dt { font-size: .86rem; font-weight: 600; }
+.stats dt small { display: block; color: var(--muted); font-weight: 400; font-size: .78rem; line-height: 1.35; }
+.stats dd { margin: 0; font-weight: 800; font-stretch: 72%; font-size: 1.65rem; line-height: 1.05; font-variant-numeric: tabular-nums; }
+.stats dd small { display: block; font-stretch: 100%; font-weight: 500; font-size: .8rem; color: var(--accent); margin-top: 3px; }
+.stats div:first-child dd { font-size: 2.3rem; }
+
+.goals { margin-top: 26px; }
+.goals h3 { margin: 0 0 8px; font-size: 1.05rem; }
+table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: .95rem; }
+th, td { padding: 11px 4px; text-align: right; border-bottom: 1px dashed var(--line); }
+th:first-child, td:first-child { text-align: left; padding-left: 10px; }
+th { font-size: .78rem; font-weight: 500; color: var(--muted); }
+td { font-weight: 500; }
+tr.on td { font-weight: 800; font-stretch: 85%; background: var(--accent-soft); }
+tr.on td:first-child { color: var(--accent); border-radius: 10px 0 0 10px; box-shadow: inset 3px 0 0 var(--accent); }
+tr.on td:last-child { border-radius: 0 10px 10px 0; padding-right: 10px; }
+
+.how { margin: 34px 0 0; padding: 4px 0; border-top: 1px dashed var(--line); border-bottom: 1px dashed var(--line); }
+.how summary { list-style: none; cursor: pointer; display: flex; justify-content: space-between; align-items: center; padding: 14px 0; font-weight: 700; }
+.how summary::-webkit-details-marker { display: none; }
+.how summary::after { content: "+"; font-size: 1.4rem; font-weight: 400; color: var(--accent); transition: transform .3s var(--spring); }
+.how[open] summary::after { transform: rotate(45deg); }
+.how summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+.how ul { margin: 0 0 16px; padding-left: 1.1rem; color: var(--muted); font-size: .92rem; }
+.how li { margin-bottom: 6px; text-wrap: pretty; }
+
+footer { max-width: 1120px; margin: 0 auto; padding: 36px 16px calc(110px + env(safe-area-inset-bottom)); color: var(--muted); font-size: .9rem; }
+footer p { margin: 0; }
+footer a { font-weight: 600; }
+
+/* Mobile: floating summary until the board is on screen. */
+.peek {
+  position: fixed; left: 12px; right: 12px; bottom: max(12px, env(safe-area-inset-bottom)); z-index: 10;
+  display: flex; align-items: center; gap: 12px; padding: 12px 14px 12px 16px; border-radius: 16px;
+  color: var(--text); text-decoration: none;
+  background: color-mix(in oklab, var(--raised) 82%, transparent);
+  -webkit-backdrop-filter: blur(14px) saturate(1.4); backdrop-filter: blur(14px) saturate(1.4);
+  border: 1px solid var(--edge); box-shadow: inset 0 1px 0 var(--hi), 0 18px 40px -12px var(--shadow);
+  transform: translateY(140%); visibility: hidden;
+  transition: transform .45s var(--spring), visibility 0s .45s;
+}
+.peek.show { transform: none; visibility: visible; transition: transform .45s var(--spring); }
+.peek b { font-weight: 800; font-stretch: 72%; font-size: 1.5rem; line-height: 1; }
+.peek .m { color: var(--muted); font-size: .85rem; flex: 1; }
+.peek .go { font-weight: 700; color: var(--accent); font-size: .9rem; }
+
+/* Entry */
+main > *, .top { animation: rise .7s var(--spring) both; }
+main > :nth-child(2) { animation-delay: .08s; } main > :nth-child(3) { animation-delay: .16s; }
+@keyframes rise { from { opacity: 0; transform: translateY(14px); } }
+
+@media (min-width: 560px) {
+  .acts { grid-template-columns: 1fr 1fr; }
+  .stats { grid-template-columns: repeat(3, 1fr); }
+  .stats div:first-child { grid-column: span 3; }
+}
+@media (min-width: 960px) {
+  main {
+    display: grid; grid-template-columns: minmax(0, 1fr) 430px; column-gap: 64px;
+    grid-template-areas: "intro board" "calc board" "more more" "how how";
+  }
+  .intro { grid-area: intro; padding-top: 56px; } .calc { grid-area: calc; } .more { grid-area: more; } .how { grid-area: how; }
+  .board { grid-area: board; position: sticky; top: 24px; align-self: start; padding-top: 56px; }
+  .stats { grid-template-columns: repeat(4, 1fr); }
+  .stats div:first-child { grid-column: span 2; grid-row: span 2; justify-content: center; }
+  .stats div:first-child dd { font-size: 3.4rem; }
+  .goals { max-width: 640px; }
+  .peek { display: none; }
+  footer { padding-bottom: 48px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  html { scroll-behavior: auto; }
+}
 </style>
 </head>
 <body>
+<header class="top">
+  <a class="brand" href="https://www.instagram.com/liftsw.anmol/">
+    <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="15" fill="var(--accent)"/><circle cx="16" cy="16" r="6.5" fill="var(--bg)"/></svg>
+    liftsw.anmol
+  </a>
+  <small>Free · no sign-up</small>
+</header>
+
 <main>
-  <p class="kicker">Free tool · no sign-up</p>
-  <h1>TDEE &amp; macro calculator for desk-job lifters</h1>
-  <p class="lede">Calories and macros for fat loss without crash diets. Same approach I used to go 89 → 80 kg in 5 months with a desk job. Nothing you type leaves your phone.</p>
+  <section class="intro">
+    <p class="kicker"><b>TDEE &amp; macro calculator</b> for desk-job lifters</p>
+    <h1>Know your numbers. <span>Skip the crash diet.</span></h1>
+    <p class="lede">Your TDEE, calories, protein, carbs and fat in 30 seconds. Nothing you type leaves your phone.</p>
+  </section>
 
-  <form id="calc" novalidate>
-    <div class="units">
-      <fieldset>
-        <legend>Weight in</legend>
-        <div class="seg">
-          <label class="opt"><input type="radio" name="wunit" value="kg" checked><span>kg</span></label>
-          <label class="opt"><input type="radio" name="wunit" value="lb"><span>lb</span></label>
-        </div>
-      </fieldset>
-      <fieldset>
-        <legend>Height in</legend>
-        <div class="seg">
-          <label class="opt"><input type="radio" name="hunit" value="cm" checked><span>cm</span></label>
-          <label class="opt"><input type="radio" name="hunit" value="ftin"><span>ft + in</span></label>
-        </div>
-      </fieldset>
+  <form id="calc" class="calc" novalidate>
+    <div class="step">
+      <h2 class="step-h"><span class="num">01</span>Units</h2>
+      <div class="units">
+        <fieldset class="sub-fs">
+          <legend>Weight in</legend>
+          <div class="seg">
+            <label class="key"><input type="radio" name="wunit" value="kg" checked><span>kg</span></label>
+            <label class="key"><input type="radio" name="wunit" value="lb"><span>lb</span></label>
+          </div>
+        </fieldset>
+        <fieldset class="sub-fs">
+          <legend>Height in</legend>
+          <div class="seg">
+            <label class="key"><input type="radio" name="hunit" value="cm" checked><span>cm</span></label>
+            <label class="key"><input type="radio" name="hunit" value="ftin"><span>ft + in</span></label>
+          </div>
+        </fieldset>
+      </div>
     </div>
 
-    <fieldset>
-      <legend>Sex <small style="font-weight:400;color:var(--muted)">(the formula needs it)</small></legend>
-      <div class="seg">
-        <label class="opt"><input type="radio" name="sex" value="male" required><span>Male</span></label>
-        <label class="opt"><input type="radio" name="sex" value="female"><span>Female</span></label>
+    <div class="step">
+      <h2 class="step-h"><span class="num">02</span>About you</h2>
+      <fieldset class="sub-fs">
+        <legend>Sex <small>(the formula needs it)</small></legend>
+        <div class="seg">
+          <label class="key"><input type="radio" name="sex" value="male" required><span>Male</span></label>
+          <label class="key"><input type="radio" name="sex" value="female"><span>Female</span></label>
+        </div>
+      </fieldset>
+      <div class="fields">
+        <label class="field"><span class="lbl" data-err="15–80">Age</span>
+          <span class="box"><input type="number" name="age" inputmode="numeric" min="15" max="80" step="1" required autocomplete="off" placeholder="30"><i>yrs</i></span></label>
+        <label class="field" data-u="kg"><span class="lbl" data-err="35–250">Weight</span>
+          <span class="box"><input type="number" name="kg" inputmode="decimal" min="35" max="250" step="any" required placeholder="80"><i>kg</i></span></label>
+        <label class="field" data-u="lb" hidden><span class="lbl" data-err="77–550">Weight</span>
+          <span class="box"><input type="number" name="lb" inputmode="decimal" min="77" max="550" step="any" required disabled placeholder="176"><i>lb</i></span></label>
+        <label class="field wide" data-u="cm"><span class="lbl" data-err="130–230">Height</span>
+          <span class="box"><input type="number" name="cm" inputmode="decimal" min="130" max="230" step="any" required placeholder="175"><i>cm</i></span></label>
+        <label class="field" data-u="ftin" hidden><span class="lbl" data-err="4–7">Height</span>
+          <span class="box"><input type="number" name="ft" inputmode="numeric" min="4" max="7" step="1" required disabled placeholder="5"><i>ft</i></span></label>
+        <label class="field" data-u="ftin" hidden><span class="lbl" data-err="0–11">Inches</span>
+          <span class="box"><input type="number" name="inch" inputmode="decimal" min="0" max="11.9" step="any" disabled placeholder="9"><i>in</i></span></label>
+        <p class="hint wide" id="cmHint" data-u="ftin" hidden></p>
+      </div>
+    </div>
+
+    <fieldset class="step">
+      <legend><span class="num">03</span>How active are you?</legend>
+      <div class="stack acts">
+        <label class="key"><input type="radio" name="activity" value="1.2"><span>Mostly sitting<small>Desk job, no regular training, under ~5k steps a day.</small></span></label>
+        <label class="key"><input type="radio" name="activity" value="1.375" checked><span>Desk job + lifts 3–4x/week<small>Office job, gym 3–4 times a week, around 5–8k steps. Most people reading this.</small></span></label>
+        <label class="key"><input type="radio" name="activity" value="1.55"><span>Active<small>Lift 4–5x a week and 10k+ steps daily, or on your feet at work.</small></span></label>
+        <label class="key"><input type="radio" name="activity" value="1.725"><span>Very active<small>Physical job, or hard training 6–7 days a week.</small></span></label>
       </div>
     </fieldset>
 
-    <div class="fields">
-      <label class="field"><span>Age</span>
-        <input type="number" name="age" inputmode="numeric" min="15" max="80" step="1" required autocomplete="off"></label>
-      <label class="field" data-u="kg"><span>Weight (kg)</span>
-        <input type="number" name="kg" inputmode="decimal" min="35" max="250" step="any" required></label>
-      <label class="field" data-u="lb" hidden><span>Weight (lb)</span>
-        <input type="number" name="lb" inputmode="decimal" min="77" max="550" step="any" required disabled></label>
-      <label class="field wide" data-u="cm"><span>Height (cm)</span>
-        <input type="number" name="cm" inputmode="decimal" min="130" max="230" step="any" required></label>
-      <label class="field" data-u="ftin" hidden><span>Height (ft)</span>
-        <input type="number" name="ft" inputmode="numeric" min="4" max="7" step="1" required disabled></label>
-      <label class="field" data-u="ftin" hidden><span>Height (in)</span>
-        <input type="number" name="inch" inputmode="decimal" min="0" max="11.9" step="any" placeholder="0" disabled></label>
-      <p class="hint wide" id="cmHint" data-u="ftin" hidden></p>
-    </div>
-
-    <fieldset>
-      <legend>Activity</legend>
+    <fieldset class="step">
+      <legend><span class="num">04</span>Your goal</legend>
       <div class="stack">
-        <label class="opt"><input type="radio" name="activity" value="1.2"><span>Mostly sitting<small>Desk job, no regular training, under ~5k steps a day.</small></span></label>
-        <label class="opt"><input type="radio" name="activity" value="1.375" checked><span>Desk job + lifts 3–4x/week<small>Office job, gym 3–4 times a week, around 5–8k steps. Most people reading this.</small></span></label>
-        <label class="opt"><input type="radio" name="activity" value="1.55"><span>Active<small>Lift 4–5x a week and 10k+ steps daily, or on your feet at work.</small></span></label>
-        <label class="opt"><input type="radio" name="activity" value="1.725"><span>Very active<small>Physical job, or hard training 6–7 days a week.</small></span></label>
-      </div>
-    </fieldset>
-
-    <fieldset>
-      <legend>Goal</legend>
-      <div class="stack">
-        <label class="opt"><input type="radio" name="goal" value="lose" checked><span>Fat loss<small>Moderate 20% deficit. Steady, not miserable.</small></span></label>
-        <label class="opt"><input type="radio" name="goal" value="maintain"><span>Maintain<small>Hold weight, keep getting stronger.</small></span></label>
-        <label class="opt"><input type="radio" name="goal" value="gain"><span>Lean gain<small>Small 10% surplus. Muscle, not just weight.</small></span></label>
+        <label class="key"><input type="radio" name="goal" value="lose" checked><span>Fat loss<small>Moderate 20% deficit. Steady, not miserable.</small></span></label>
+        <label class="key"><input type="radio" name="goal" value="maintain"><span>Maintain<small>Hold weight, keep getting stronger.</small></span></label>
+        <label class="key"><input type="radio" name="goal" value="gain"><span>Lean gain<small>Small 10% surplus. Muscle, not just weight.</small></span></label>
       </div>
     </fieldset>
   </form>
 
-  <section class="result" aria-labelledby="rh" aria-live="polite">
-    <h2 id="rh">Your daily targets</h2>
-    <p class="empty" id="empty">Fill in sex, age, weight and height to see your numbers.</p>
-    <div id="out" hidden>
-      <p class="kcal"><span id="kcal"></span> <small>kcal / day</small></p>
-      <p class="sub" id="sub"></p>
-      <div class="bar" aria-hidden="true"><i id="bp"></i><i id="bc"></i><i id="bf"></i></div>
-      <dl class="macros">
-        <div><dt>Protein</dt><dd><span id="p"></span> <small>g</small><small class="split" id="ps"></small></dd></div>
-        <div><dt>Carbs</dt><dd><span id="c"></span> <small>g</small><small class="split" id="cs"></small></dd></div>
-        <div><dt>Fat</dt><dd><span id="f"></span> <small>g</small><small class="split" id="fs"></small></dd></div>
-      </dl>
-      <p class="note"><strong>How to use:</strong> hit calories and protein every day, let carbs and fat flex, and only adjust by ~150 kcal if your weekly average weight hasn't moved in 2–3 weeks.</p>
+  <aside class="board" id="results" aria-labelledby="rh">
+    <div class="board-inner" id="tilt">
+      <div class="board-head"><h2 id="rh">Daily targets</h2><span class="tag" id="goalTag">Fat loss</span></div>
+      <div class="empty" id="empty"><div class="ghost" aria-hidden="true"></div><p>Fill in your stats. Your plate loads up here.</p></div>
+      <div id="out" hidden>
+        <div class="plate-wrap" aria-hidden="true">
+          <div class="plate" id="plate"><div class="hub"><b id="kcal"></b><small>kcal / day</small></div></div>
+        </div>
+        <p class="sub" id="sub"></p>
+        <dl class="macros">
+          <div><dt>Protein</dt><dd><b id="p"></b><span class="g">g</span><small id="ps"></small></dd></div>
+          <div><dt>Carbs</dt><dd><b id="c"></b><span class="g">g</span><small id="cs"></small></dd></div>
+          <div><dt>Fat</dt><dd><b id="f"></b><span class="g">g</span><small id="fs"></small></dd></div>
+        </dl>
+        <p class="note"><b>How to use:</b> hit calories and protein every day, let carbs and fat flex, and only adjust by ~150 kcal if your weekly average weight hasn't moved in 2–3 weeks.</p>
+      </div>
+      <p class="sr-only" id="sr" aria-live="polite"></p>
     </div>
-  </section>
+  </aside>
 
-  <section class="result more" id="more" aria-labelledby="bh" hidden>
-    <h2 id="bh">Full breakdown</h2>
-    <dl class="rows">
-      <div><dt>BMR<small>Burned at total rest (Mifflin-St Jeor)</small></dt><dd id="xBmr"></dd></div>
-      <div><dt>TDEE / maintenance<small>BMR × your activity level</small></dt><dd id="xTdee"></dd></div>
-      <div><dt>Daily deficit / surplus<small>Your target vs maintenance</small></dt><dd id="xDiff"></dd></div>
-      <div><dt>Expected rate<small>If you hit the target most days</small></dt><dd id="xRate"></dd></div>
-      <div><dt>BMI<small>Height vs weight; ignores muscle</small></dt><dd id="xBmi"></dd></div>
+  <section class="more" id="more" aria-labelledby="bh" hidden>
+    <h2 id="bh">The full breakdown</h2>
+    <p>Everything else your stats tell us.</p>
+    <dl class="stats">
+      <div><dt>TDEE / maintenance<small>BMR × your activity level. Eat this and your weight holds.</small></dt><dd id="xTdee"></dd></div>
+      <div><dt>BMR<small>Burned at total rest</small></dt><dd id="xBmr"></dd></div>
+      <div><dt>Daily deficit / surplus<small>Target vs maintenance</small></dt><dd id="xDiff"></dd></div>
+      <div><dt>Expected rate<small>If you hit it most days</small></dt><dd id="xRate"></dd></div>
+      <div><dt>BMI<small>Ignores muscle</small></dt><dd id="xBmi"></dd></div>
       <div><dt>Protein range<small>1.6–2.2 g per kg</small></dt><dd id="xPr"></dd></div>
       <div><dt>Protein per meal<small>Split over 4 meals</small></dt><dd id="xPm"></dd></div>
       <div><dt>Fibre<small>14 g per 1,000 kcal</small></dt><dd id="xFib"></dd></div>
       <div><dt>Water<small>~35 ml per kg, more on gym days</small></dt><dd id="xWater"></dd></div>
     </dl>
-    <h3>Calories &amp; macros by goal</h3>
-    <table>
-      <thead><tr><th scope="col">Goal</th><th scope="col">kcal</th><th scope="col">Protein</th><th scope="col">Carbs</th><th scope="col">Fat</th></tr></thead>
-      <tbody id="goals"></tbody>
-    </table>
+    <div class="goals">
+      <h3>Calories &amp; macros by goal</h3>
+      <table>
+        <thead><tr><th scope="col">Goal</th><th scope="col">kcal</th><th scope="col">Protein</th><th scope="col">Carbs</th><th scope="col">Fat</th></tr></thead>
+        <tbody id="goals"></tbody>
+      </table>
+    </div>
   </section>
 
-  <details>
+  <details class="how">
     <summary>How it's calculated</summary>
     <ul>
       <li>BMR: Mifflin-St Jeor, the most accurate everyday formula.</li>
@@ -217,7 +442,10 @@ a { color: var(--accent); }
     </ul>
   </details>
 </main>
-<footer>by <a href="https://www.instagram.com/liftsw.anmol/">@liftsw.anmol</a></footer>
+
+<footer><p>by <a href="https://www.instagram.com/liftsw.anmol/">@liftsw.anmol</a> · fat loss &amp; training for desk-job lifters</p></footer>
+
+<a class="peek" id="peek" href="#results"><b id="peekKcal"></b><span class="m" id="peekMacros"></span><span class="go">View ↓</span></a>
 
 <script id="macros">
 // Pure macro math, metric in. Verified by check.mjs.
@@ -257,6 +485,8 @@ const f = form.elements;
 const $ = id => document.getElementById(id);
 const LB = 0.45359237, IN = 2.54;
 const fmt = n => n.toLocaleString('en');
+const names = { lose: 'Fat loss', maintain: 'Maintain', gain: 'Lean gain' };
+let boardBelow = true;
 
 // Carry the typed value over when a unit toggle flips, then show only the active unit's fields.
 function switchUnits(name) {
@@ -274,16 +504,20 @@ function switchUnits(name) {
   }
 }
 
+// Show the floating summary only while the results are still further down the page.
+function peek() { $('peek').classList.toggle('show', !$('out').hidden && boardBelow); }
+
 function update(e) {
   switchUnits(e && e.target.name);
   const ftin = f.hunit.value === 'ftin';
   const cm = ftin ? (f.ft.value * 12 + +f.inch.value) * IN : +f.cm.value;
   $('cmHint').textContent = ftin && f.ft.value && f.ft.checkValidity() && f.inch.checkValidity()
     ? `= ${Math.round(cm)} cm` : '';
+  $('goalTag').textContent = names[f.goal.value];
   const ok = form.checkValidity();
   $('empty').hidden = ok;
   $('out').hidden = $('more').hidden = !ok;
-  if (!ok) return;
+  if (!ok) { $('sr').textContent = ''; return peek(); }
   const lb = f.wunit.value === 'lb';
   const input = {
     sex: f.sex.value, age: +f.age.value, activity: +f.activity.value, goal: f.goal.value,
@@ -295,18 +529,24 @@ function update(e) {
   $('sub').textContent = `Maintenance ≈ ${fmt(r.tdee)} kcal` +
     (pct ? ` · ${pct}% ${r.kcal < r.tdee ? 'deficit' : 'surplus'}` : '') +
     (input.goal === 'lose' && x.bmi < 18.5 ? '. Your BMI is under 18.5, so maintain or gain instead of cutting.' : '');
+  const share = {};
   for (const [id, g, k] of [['p', r.protein, 4], ['c', r.carbs, 4], ['f', r.fat, 9]]) {
+    share[id] = g * k / r.kcal * 100;
     $(id).textContent = g;
-    $(id + 's').textContent = `${Math.round(g * k / r.kcal * 100)}% · ${fmt(g * k)} kcal`;
-    $('b' + id).style.flex = g * k;
+    $(id + 's').textContent = `${Math.round(share[id])}% · ${fmt(g * k)} kcal`;
   }
+  $('plate').style.setProperty('--a', `${share.p}%`);
+  $('plate').style.setProperty('--b', `${share.p + share.c}%`);
+  $('sr').textContent = `${fmt(r.kcal)} kcal a day: ${r.protein} g protein, ${r.carbs} g carbs, ${r.fat} g fat.`;
+  $('peekKcal').textContent = `${fmt(r.kcal)} kcal`;
+  $('peekMacros').textContent = `${r.protein}P · ${r.carbs}C · ${r.fat}F`;
 
   const diff = r.kcal - r.tdee, perWeek = lb ? x.kgPerWeek / LB : x.kgPerWeek;
   $('xBmr').textContent = `${fmt(r.bmr)} kcal`;
   $('xTdee').textContent = `${fmt(r.tdee)} kcal`;
   $('xDiff').textContent = Math.abs(diff) >= 10 ? `${diff < 0 ? '−' : '+'}${fmt(Math.abs(diff))} kcal` : 'None';
-  $('xRate').innerHTML = Math.abs(perWeek) < 0.05 ? 'Weight holds steady'
-    : `${diff < 0 ? '−' : '+'}${Math.abs(perWeek).toFixed(1)} ${lb ? 'lb' : 'kg'} / week` +
+  $('xRate').innerHTML = Math.abs(perWeek) < 0.05 ? 'Steady'
+    : `${diff < 0 ? '−' : '+'}${Math.abs(perWeek).toFixed(1)} ${lb ? 'lb' : 'kg'} / wk` +
       `<small>${(Math.abs(x.kgPerWeek) / input.kg * 100).toFixed(1)}% of bodyweight</small>`;
   $('xBmi').innerHTML = `${x.bmi}<small>${x.bmiClass}</small>`;
   $('xPr').textContent = `${x.proteinRange[0]}–${x.proteinRange[1]} g`;
@@ -314,16 +554,30 @@ function update(e) {
   $('xFib').textContent = `${x.fibre} g`;
   $('xWater').textContent = `${x.waterL} L`;
 
-  const names = { lose: 'Fat loss', maintain: 'Maintain', gain: 'Lean gain' };
   $('goals').innerHTML = Object.keys(names).map(goal => {
     const g = macros({ ...input, goal });
     return `<tr${goal === input.goal ? ' class="on"' : ''}><td>${names[goal]}</td><td>${fmt(g.kcal)}</td>` +
       `<td>${g.protein} g</td><td>${g.carbs} g</td><td>${g.fat} g</td></tr>`;
   }).join(''); // numbers only, no user text, so innerHTML is safe
+  peek();
 }
 
 form.addEventListener('input', update);
 form.addEventListener('submit', e => e.preventDefault());
+new IntersectionObserver(([en]) => { boardBelow = !en.isIntersecting && en.boundingClientRect.top > 0; peek(); }, { threshold: 0.2 }).observe($('results'));
+
+// Mouse-only 3D tilt on the results board; touch keeps normal scrolling.
+const tilt = $('tilt');
+if (matchMedia('(hover: hover) and (prefers-reduced-motion: no-preference)').matches) {
+  tilt.addEventListener('pointermove', e => {
+    const b = tilt.getBoundingClientRect(), x = (e.clientX - b.left) / b.width, y = (e.clientY - b.top) / b.height;
+    tilt.style.setProperty('--ry', `${(x - .5) * 9}deg`);
+    tilt.style.setProperty('--rx', `${(.5 - y) * 7}deg`);
+    tilt.style.setProperty('--mx', `${x * 100}%`);
+    tilt.style.setProperty('--my', `${y * 100}%`);
+  });
+  tilt.addEventListener('pointerleave', () => { tilt.style.setProperty('--rx', '0deg'); tilt.style.setProperty('--ry', '0deg'); });
+}
 update(); // sync fields if the browser restored toggles on back/refresh
 </script>
 </body>
