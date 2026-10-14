@@ -422,7 +422,7 @@ main > :nth-child(2) { animation-delay: .08s; } main > :nth-child(3) { animation
     grid-template-areas: "intro board" "calc board" "more more" "how how" "faq faq";
   }
   .intro { grid-area: intro; padding-top: clamp(40px, 6vh, 88px); } .calc { grid-area: calc; } .more { grid-area: more; } .how { grid-area: how; } .faq { grid-area: faq; }
-  .board { grid-area: board; align-self: start; padding-top: clamp(40px, 6vh, 88px); }
+  .board { grid-area: board; padding-top: clamp(40px, 6vh, 88px); }
   .display { font-size: clamp(3.6rem, 5.6vw, 6.5rem); }
   .plate { width: min(16rem, 100%, 30vh); } /* keeps the pinned card within short laptop screens */
   .peek { display: none; }
@@ -439,8 +439,8 @@ main > :nth-child(2) { animation-delay: .08s; } main > :nth-child(3) { animation
   .more.is-empty .goals { display: none; }
   .display { font-size: clamp(4rem, 3.9vw, 8rem); }
 }
-/* Pin panels only when the screen is tall enough to show them whole. */
-@media (min-width: 960px) and (min-height: 740px) { .board { position: sticky; top: 16px; } }
+/* Pin panels only when the screen is tall enough to show them whole. Sticky goes on the inner card so it is bounded by the board's grid area, not the whole page grid (else it rides over the FAQ). */
+@media (min-width: 960px) and (min-height: 740px) { .board-inner { position: sticky; top: 16px; } }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
   html { scroll-behavior: auto; }
