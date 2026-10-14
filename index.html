@@ -3,10 +3,41 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Free TDEE &amp; Macro Calculator · @liftsw.anmol</title>
-<meta name="description" content="Free TDEE, BMR, calorie and macro calculator. Fat loss without crash diets. No sign-up.">
-<meta property="og:title" content="Free TDEE &amp; Macro Calculator">
-<meta property="og:description" content="BMR, TDEE, calories, protein, carbs, fat, BMI and more. 30 seconds, no sign-up.">
+<title>Free Calorie &amp; Macro Calculator: TDEE, BMR &amp; BMI | liftsw.anmol</title>
+<meta name="description" content="Free calorie and macro calculator: your TDEE, BMR, daily calories, protein, carbs, fat and BMI for fat loss or muscle gain. kg or lb, no sign-up.">
+<link rel="canonical" href="https://anmol26rajput.github.io/macro-calculator/">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="author" content="Anmol Rajput">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://anmol26rajput.github.io/macro-calculator/">
+<meta property="og:site_name" content="liftsw.anmol">
+<meta property="og:title" content="Free Calorie &amp; Macro Calculator (TDEE, BMR, BMI)">
+<meta property="og:description" content="Daily calories, protein, carbs, fat, BMI and how long to reach your goal weight. Free, 30 seconds, no sign-up.">
+<meta property="og:image" content="https://anmol26rajput.github.io/macro-calculator/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Free calorie and macro calculator by @liftsw.anmol">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Free Calorie &amp; Macro Calculator (TDEE, BMR, BMI)">
+<meta name="twitter:description" content="Daily calories, protein, carbs, fat, BMI and a goal-weight timeline. Free, no sign-up.">
+<meta name="twitter:image" content="https://anmol26rajput.github.io/macro-calculator/og-image.png">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Free Calorie & Macro Calculator",
+  "url": "https://anmol26rajput.github.io/macro-calculator/",
+  "description": "Free calorie, macro, TDEE, BMR and BMI calculator with a goal-weight timeline, for fat loss, maintenance, lean gain or bulking. Works in kg or lb.",
+  "applicationCategory": "HealthApplication",
+  "operatingSystem": "Any",
+  "browserRequirements": "Requires JavaScript",
+  "isAccessibleForFree": true,
+  "inLanguage": "en",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "featureList": ["Calorie calculator", "Macro calculator", "TDEE calculator", "BMR calculator", "BMI calculator with South Asian cut-offs", "Protein calculator", "Goal weight timeline"],
+  "author": { "@type": "Person", "name": "Anmol Rajput", "url": "https://www.instagram.com/liftsw.anmol/", "sameAs": ["https://www.instagram.com/liftsw.anmol/"] }
+}
+</script>
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#ece7df" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#12100e" media="(prefers-color-scheme: dark)">
@@ -68,13 +99,13 @@ a { color: var(--accent); text-underline-offset: 3px; }
 
 main { max-width: var(--wide); margin: 0 auto; padding: 0 var(--gutter); }
 .intro { padding: 36px 0 30px; }
-.kicker { margin: 0 0 14px; color: var(--muted); font-size: .92rem; font-weight: 500; }
+.kicker { margin: 0 0 14px; color: var(--muted); font-size: .92rem; font-weight: 500; letter-spacing: 0; }
 .kicker b { color: var(--accent); font-weight: 600; }
-h1 {
+.display {
   margin: 0; font-weight: 800; font-stretch: 68%; text-transform: uppercase;
   font-size: clamp(2.5rem, 14vw, 5rem); line-height: .86; letter-spacing: -.005em; text-wrap: balance;
 }
-h1 span { color: var(--accent); display: block; }
+.display span { color: var(--accent); display: block; }
 .lede { margin: 18px 0 0; max-width: 34ch; color: var(--muted); font-size: 1.05rem; text-wrap: pretty; }
 
 /* ---------- Form: steps ---------- */
@@ -321,6 +352,13 @@ tr.on td:last-child { border-radius: 0 10px 10px 0; padding-right: 10px; }
 .how ul { margin: 0 0 16px; padding-left: 1.1rem; color: var(--muted); font-size: .92rem; }
 .how li { margin-bottom: 6px; text-wrap: pretty; }
 
+.faq { padding: 40px 0 0; container: faq / inline-size; }
+.faq h2 { margin: 0 0 18px; font-size: clamp(1.6rem, 6vw, 2.2rem); font-weight: 800; font-stretch: 70%; text-transform: uppercase; line-height: 1.05; }
+.faq-list { display: grid; gap: 22px; }
+.faq h3 { margin: 0 0 6px; font-size: 1rem; }
+.faq p { margin: 0; color: var(--muted); font-size: .94rem; max-width: 62ch; text-wrap: pretty; }
+@container faq (min-width: 760px) { .faq-list { grid-template-columns: 1fr 1fr; gap: 28px 48px; } }
+
 footer { max-width: var(--wide); margin: 0 auto; padding: 36px var(--gutter) calc(110px + env(safe-area-inset-bottom)); color: var(--muted); font-size: .9rem; }
 footer p { margin: 0; }
 footer a { font-weight: 600; }
@@ -378,11 +416,11 @@ main > :nth-child(2) { animation-delay: .08s; } main > :nth-child(3) { animation
 @media (min-width: 960px) {
   main {
     display: grid; grid-template-columns: minmax(0, 1fr) clamp(360px, 34vw, 560px); column-gap: clamp(40px, 4vw, 96px);
-    grid-template-areas: "intro board" "calc board" "more more" "how how";
+    grid-template-areas: "intro board" "calc board" "more more" "how how" "faq faq";
   }
-  .intro { grid-area: intro; padding-top: clamp(40px, 6vh, 88px); } .calc { grid-area: calc; } .more { grid-area: more; } .how { grid-area: how; }
+  .intro { grid-area: intro; padding-top: clamp(40px, 6vh, 88px); } .calc { grid-area: calc; } .more { grid-area: more; } .how { grid-area: how; } .faq { grid-area: faq; }
   .board { grid-area: board; align-self: start; padding-top: clamp(40px, 6vh, 88px); }
-  h1 { font-size: clamp(3.6rem, 5.6vw, 6.5rem); }
+  .display { font-size: clamp(3.6rem, 5.6vw, 6.5rem); }
   .plate { width: min(16rem, 100%, 30vh); } /* keeps the pinned card within short laptop screens */
   .peek { display: none; }
   footer { padding-bottom: 48px; }
@@ -391,12 +429,12 @@ main > :nth-child(2) { animation-delay: .08s; } main > :nth-child(3) { animation
 @media (min-width: 1680px) {
   main {
     grid-template-columns: minmax(0, 1.15fr) minmax(400px, .85fr) minmax(0, 1fr);
-    grid-template-areas: "intro board more" "calc board more" "how board more";
+    grid-template-areas: "intro board more" "calc board more" "how board more" "faq faq faq";
   }
   .more { align-self: start; padding-top: clamp(40px, 6vh, 88px); }
   .more.is-empty { display: block; opacity: .4; }
   .more.is-empty .goals { display: none; }
-  h1 { font-size: clamp(4rem, 3.9vw, 8rem); }
+  .display { font-size: clamp(4rem, 3.9vw, 8rem); }
 }
 /* Pin panels only when the screen is tall enough to show them whole. */
 @media (min-width: 960px) and (min-height: 740px) { .board { position: sticky; top: 16px; } }
@@ -417,9 +455,9 @@ main > :nth-child(2) { animation-delay: .08s; } main > :nth-child(3) { animation
 
 <main>
   <section class="intro">
-    <p class="kicker"><b>TDEE &amp; macro calculator</b> · free for everyone</p>
-    <h1>Know your numbers. <span>Skip the crash diet.</span></h1>
-    <p class="lede">Your TDEE, calories, protein, carbs and fat in 30 seconds. Nothing you type leaves your phone.</p>
+    <h1 class="kicker"><b>Free calorie &amp; macro calculator</b> · TDEE, BMR &amp; BMI</h1>
+    <p class="display">Know your numbers. <span>Skip the crash diet.</span></p>
+    <p class="lede">Work out how many calories to eat, your protein, carbs and fat, and how long it takes to reach your goal weight. 30 seconds, nothing you type leaves your phone.</p>
   </section>
 
   <form id="calc" class="calc" novalidate>
@@ -601,6 +639,28 @@ main > :nth-child(2) { animation-delay: .08s; } main > :nth-child(3) { animation
       <li>These are starting estimates, not medical advice. Your scale trend is the real test.</li>
     </ul>
   </details>
+
+  <section class="faq" aria-labelledby="faqh">
+    <h2 id="faqh">Calorie &amp; macro questions, answered</h2>
+    <div class="faq-list">
+      <div><h3>How many calories should I eat to lose weight?</h3>
+        <p>Start about 20% below your TDEE (the calories you burn in a day). For most people that's a 300–600 kcal daily deficit, which works out to losing roughly 0.5–1% of your body weight a week. Going much lower usually costs muscle and is hard to stick to, so this calculator never sets you below your BMR.</p></div>
+      <div><h3>What's the difference between TDEE and BMR?</h3>
+        <p>BMR (basal metabolic rate) is what your body burns at complete rest, just to keep you alive. TDEE (total daily energy expenditure) adds everything else: walking, work, and training. Eat at your TDEE and your weight stays the same; eat below it to lose fat, above it to gain.</p></div>
+      <div><h3>How much protein do I need per day?</h3>
+        <p>Research supports 1.6–2.2 g of protein per kg of body weight for building and keeping muscle. When you're trying to lose fat, aim for the higher end. If you have a lot of weight to lose, base it on your goal weight instead of your current weight, which is exactly what this macro calculator does.</p></div>
+      <div><h3>How do I count macros?</h3>
+        <p>Protein and carbs have 4 calories per gram, fat has 9. Weigh your food, log it in any tracking app, and aim to hit your calories and protein every day. Carbs and fat can move around as long as the total calories land close to your target.</p></div>
+      <div><h3>How accurate is this calorie calculator?</h3>
+        <p>It uses the Mifflin-St Jeor equation, the most accurate everyday formula, which is usually within about 10% for most people. Treat the result as a starting point: track your weekly average weight for 2–3 weeks and adjust by around 150 kcal if it isn't moving the way you want.</p></div>
+      <div><h3>Lean gain or bulk: which should I pick to build muscle?</h3>
+        <p>Lean gain (about 10% over maintenance) builds muscle slowly with very little fat. Bulk (about 15% over) builds size and strength faster but adds more fat along the way. If you're skinny or new to lifting, bulk; if you're already carrying some fat, lean gain.</p></div>
+      <div><h3>Does it work for Indian and vegetarian diets?</h3>
+        <p>Yes. The numbers don't depend on what you eat. Vegetarian protein sources that work well: paneer, curd or Greek yogurt, dal, chana, soy chunks, tofu, milk and whey. The BMI section also has South Asian cut-offs, since health risk starts at a lower BMI for South Asians.</p></div>
+      <div><h3>Can I use kg and cm, or lb and feet?</h3>
+        <p>Both. Pick kg or lb for weight and cm or feet + inches for height; you can mix them, and the calculator converts as you switch.</p></div>
+    </div>
+  </section>
 </main>
 
 <footer><p>by <a href="https://www.instagram.com/liftsw.anmol/">@liftsw.anmol</a> · fat loss &amp; training for desk-job lifters</p></footer>
